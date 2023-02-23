@@ -16,6 +16,7 @@
  * *****************************************************************************/
 package ch.usi.inf.nodeprof.jalangi.factory;
 
+import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.TruffleInstrument;
@@ -41,8 +42,10 @@ public class RootFactory extends AbstractFactory {
     @Override
     public BaseEventHandlerNode create(EventContext context) {
         return new FunctionRootEventHandler(context) {
-            @Child MakeArgumentArrayNode makeArgs = MakeArgumentArrayNodeGen.create(pre == null ? post : pre, 2, 0);
-            @Child CallbackNode cbNode = new CallbackNode();
+            @Child
+            MakeArgumentArrayNode makeArgs = MakeArgumentArrayNodeGen.create(pre == null ? post : pre, 2, 0);
+            @Child
+            CallbackNode cbNode = new CallbackNode();
 
             @Override
             public void executePre(VirtualFrame frame, Object[] inputs) {
@@ -56,15 +59,13 @@ public class RootFactory extends AbstractFactory {
             }
 
             @Override
-            public void executePost(VirtualFrame frame, Object result,
-                            Object[] inputs) throws InteropException {
-                if (isRegularExpression()) {
-                    return;
+            public Object executePost(VirtualFrame frame, Object result,
+                                      Object[] inputs) throws InteropException {
+                if (isRegularExpression() || this.isBuiltin || post == null) {
+                    return null;
                 }
 
-                if (!this.isBuiltin && post != null) {
-                    cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result), createWrappedException(null));
-                }
+                return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result), createWrappedException(null));
             }
 
             @Override
@@ -80,7 +81,7 @@ public class RootFactory extends AbstractFactory {
 
             @Override
             public void executeExceptionalCtrlFlow(VirtualFrame frame, Throwable exception,
-                            Object[] inputs) throws InteropException {
+                                                   Object[] inputs) throws InteropException {
                 // ignore Truffle-internal control flow exceptions
                 if (exception instanceof ReturnException) {
                     Object returnExceptionValue = ((ReturnException) exception).getResult();

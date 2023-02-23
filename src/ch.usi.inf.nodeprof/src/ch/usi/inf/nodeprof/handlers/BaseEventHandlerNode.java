@@ -41,15 +41,16 @@ import ch.usi.inf.nodeprof.utils.SourceMapping;
 import static com.oracle.truffle.js.runtime.Strings.REQUIRE_PROPERTY_NAME;
 
 /**
- *
  * BaseEventHandlerNode defines the common methods needed to handle an event
- *
  */
 public abstract class BaseEventHandlerNode extends Node {
     protected final EventContext context;
-    @CompilationFinal private FrameSlot returnSlot;
-    @CompilationFinal private boolean noReturnSlot = false;
-    @CompilationFinal private boolean deactivated = false;
+    @CompilationFinal
+    private FrameSlot returnSlot;
+    @CompilationFinal
+    private boolean noReturnSlot = false;
+    @CompilationFinal
+    private boolean deactivated = false;
 
     public Object getReturnValueFromFrameOrDefault(VirtualFrame frame, Object defaultValue) {
         // cache the frame slot for the return value
@@ -103,21 +104,23 @@ public abstract class BaseEventHandlerNode extends Node {
     }
 
     /**
-     * @param frame the current virtual frame
+     * @param frame  the current virtual frame
      * @param inputs the input array get from ExecutionEventNode.getSavedInputValues()
      * @throws Exception
      */
     public void executePre(VirtualFrame frame, Object[] inputs) throws Exception {
-
     }
 
     /**
-     * @param frame the current virtual frame
+     * @param frame  the current virtual frame
      * @param result of the execution of the instrumented node
      * @param inputs the input array get from ExecutionEventNode.getSavedInputValues()
      */
-    public void executePost(VirtualFrame frame, Object result, Object[] inputs) throws Exception {
+    public Object executePost(VirtualFrame frame, Object result, Object[] inputs) throws Exception {
+        return null;
+    }
 
+    public void executeOnInput(VirtualFrame frame, int inputIndex, Object input) throws Exception {
     }
 
     public void executeExceptional(@SuppressWarnings("unused") VirtualFrame frame, @SuppressWarnings("unused") Throwable exception) throws Exception {
@@ -152,7 +155,6 @@ public abstract class BaseEventHandlerNode extends Node {
     }
 
     /**
-     *
      * get the node-specific attribute, in case of missing such attributes report an error
      *
      * @param key of the current InstrumentableNode
@@ -170,7 +172,6 @@ public abstract class BaseEventHandlerNode extends Node {
     }
 
     /**
-     *
      * get the node-specific attribute, in case of missing such attributes, return null
      *
      * @param key of the current InstrumentableNode
@@ -243,8 +244,8 @@ public abstract class BaseEventHandlerNode extends Node {
     @TruffleBoundary
     private void reportInputsError(int index, Object[] inputs, String info, String inputHint) {
         Logger.error(context.getInstrumentedSourceSection(),
-                        "Error[" + info + "] getting input (" + inputHint + ") at index '" + index + "' from " +
-                                        context.getInstrumentedNode().getClass().getSimpleName() + " (has " + (inputs == null ? 0 : inputs.length) + " input(s))");
+                "Error[" + info + "] getting input (" + inputHint + ") at index '" + index + "' from " +
+                        context.getInstrumentedNode().getClass().getSimpleName() + " (has " + (inputs == null ? 0 : inputs.length) + " input(s))");
 
         if (!GlobalConfiguration.IGNORE_JALANGI_EXCEPTION) {
             Thread.dumpStack();
@@ -267,7 +268,7 @@ public abstract class BaseEventHandlerNode extends Node {
     public final boolean isLastIndex(int inputCount, int index) {
         int expected = expectedNumInputs();
         assert inputCount >= expected : Logger.printSourceSectionWithCode(this.getInstrumentedSourceSection()).append(context.getInstrumentedNode().getClass()).append(" ").append(inputCount).append(
-                        " < ").append(expected + " ").toString();
+                " < ").append(expected + " ").toString();
         if (expected == -1) {
             // not sure how many inputs
             return index == inputCount - 1;
@@ -291,8 +292,8 @@ public abstract class BaseEventHandlerNode extends Node {
      * Allows handlers to ask for eventual replacement or removal.
      *
      * @return <code>null</code> to remove this handler, another instance of
-     *         {@link BaseEventHandlerNode} to replace this handler with, or <code>this</code> to
-     *         continue without change.
+     * {@link BaseEventHandlerNode} to replace this handler with, or <code>this</code> to
+     * continue without change.
      */
     public BaseEventHandlerNode wantsToUpdateHandler() {
         return deactivated ? null : this;

@@ -16,13 +16,24 @@
  * *****************************************************************************/
 package ch.usi.inf.nodeprof.analysis;
 
+import ch.usi.inf.nodeprof.handlers.BinaryEventHandler;
+import ch.usi.inf.nodeprof.handlers.ExpressionEventHandler;
+import ch.usi.inf.nodeprof.handlers.FunctionCallEventHandler;
+import ch.usi.inf.nodeprof.handlers.VarReadEventHandler;
+import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.EventBinding;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
+import com.oracle.truffle.api.instrumentation.InstrumentableNode;
+import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.nodes.ControlFlowException;
+import com.oracle.truffle.js.builtins.JavaBuiltins;
+import com.oracle.truffle.js.nodes.JavaScriptNode;
 import com.oracle.truffle.js.runtime.GraalJSException;
 
 import ch.usi.inf.nodeprof.ProfiledTagEnum;
@@ -30,21 +41,25 @@ import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.utils.GlobalConfiguration;
 import ch.usi.inf.nodeprof.utils.Logger;
 
+import java.util.Arrays;
+
 public class ProfilerExecutionEventNode extends ExecutionEventNode {
     protected final EventContext context;
     protected final ProfiledTagEnum cb;
-    @Child BaseEventHandlerNode child;
+    @Child
+    BaseEventHandlerNode child;
     int hasOnEnter = 0;
     /**
      * A flag to switch on/off the profiling analysis: true => enabled, false => disabled
-     *
+     * <p>
      * by default the instrumentation is on. It can be updated with
      * ProfilerExecutionEventNode.updateEnabled.
-     *
+     * <p>
      * After disabled, this class acts as an empty ExecutionEventNode which can be fully optimized
      * out by the compiler
      */
-    @CompilationFinal private static boolean profilerEnabled = true;
+    @CompilationFinal
+    private static boolean profilerEnabled = true;
 
     public static boolean getEnabled() {
         return profilerEnabled;
@@ -59,11 +74,28 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
     }
 
     public ProfilerExecutionEventNode(ProfiledTagEnum cb, EventContext context,
-                    BaseEventHandlerNode child) {
+                                      BaseEventHandlerNode child) {
         this.context = context;
         this.cb = cb;
         this.cb.nodeCount++;
         this.child = child;
+
+//        if (this.child instanceof BinaryEventHandler) {
+//            System.out.println(this.context.getInstrumentedNode());
+//
+//            throw context.createUnwind(42);
+
+//            if (this.context.getInstrumentedNode() instanceof JavaScriptNode) {
+//                this.context.getInstrumentedNode().replace(wrapper);
+//            }
+//            this.context.getInstrumentedNode().replace(new JavaScriptNodeWrapper())
+//            this.context.getInstrumentedNode().replace(new JavaScriptNode() {
+//                @Override
+//                public Object execute(VirtualFrame frame) {
+//                    return "flub";
+//                }
+//            });
+//        }
     }
 
     public EventContext getContext() {
@@ -72,14 +104,27 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
 
     @Override
     protected void onInputValue(VirtualFrame frame, EventContext inputContext,
-                    int inputIndex, Object inputValue) {
+                                int inputIndex, Object inputValue) {
         if (!profilerEnabled) {
             return;
         }
+
+//        if (child instanceof FunctionCallEventHandler) {
+//            System.out.println("FunctionCallNode: " + context.getInstrumentedNode());
+////            System.out.println("Function input " + (inputIndex > 2 ? ((FunctionCallEventHandler) child).getFunctionName(getSavedInputValues(frame)) : "") + ": " + inputValue);
+//        }
+
+        try {
+            this.child.executeOnInput(frame, inputIndex, inputValue);
+        } catch (Throwable e) {
+            reportError(null, e);
+        }
+
         if (child.expectedNumInputs() < 0 || inputIndex < child.expectedNumInputs()) {
             // save input only necessary
             saveInputValue(frame, inputIndex, inputValue);
         }
+
         if (this.child.isLastIndex(getInputCount(), inputIndex)) {
             this.cb.preHitCount++;
             try {
@@ -104,6 +149,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
             this.child.enter(frame);
             if (this.child.isLastIndex(getInputCount(), -1)) {
                 this.cb.preHitCount++;
+
                 this.child.executePre(frame, null);
 
                 // allow for handler changes after executePre/Post
@@ -114,18 +160,23 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         }
     }
 
+
     @Override
     protected void onReturnValue(VirtualFrame frame, Object result) {
         if (!profilerEnabled) {
             return;
         }
+
         Object[] inputs = null;
+
+        Object newResult = null;
+
         try {
             if (hasOnEnter > 0) {
                 hasOnEnter--;
                 this.cb.postHitCount++;
                 inputs = child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null;
-                this.child.executePost(frame, result, inputs);
+                newResult = this.child.executePost(frame, result, inputs);
 
                 // allow for handler changes after executePre/Post
                 checkHandlerChanges();
@@ -133,6 +184,18 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         } catch (Throwable e) {
             reportError(inputs, e);
         }
+
+        if (newResult != null) {
+            CompilerDirectives.transferToInterpreter();
+            throw context.createUnwind(newResult);
+        }
+    }
+
+    @Override
+    protected Object onUnwind(VirtualFrame frame, Object info) {
+//        System.out.println("Unwind: " + info);
+        // ToDo - some debug output?
+        return info;
     }
 
     @TruffleBoundary
@@ -151,7 +214,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         if (inputs != null) {
             for (int i = 0; i < inputs.length; i++) {
                 Logger.error(context.getInstrumentedSourceSection(),
-                                "\targ[" + i + "]: " + inputs[i]);
+                        "\targ[" + i + "]: " + inputs[i]);
             }
         }
         if (!GlobalConfiguration.IGNORE_JALANGI_EXCEPTION) {
@@ -177,7 +240,6 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
                 } else {
                     this.child.executeExceptional(frame, exception);
                 }
-
             }
         } catch (Throwable e) {
             reportError(inputs, e);

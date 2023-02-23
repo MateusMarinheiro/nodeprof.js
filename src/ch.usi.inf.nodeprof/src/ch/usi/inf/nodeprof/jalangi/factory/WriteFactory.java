@@ -43,14 +43,14 @@ public class WriteFactory extends AbstractFactory {
                 @Child CallbackNode cbNode = new CallbackNode();
 
                 @Override
-                public void executePost(VirtualFrame frame, Object result,
+                public Object executePost(VirtualFrame frame, Object result,
                                 Object[] inputs) throws InteropException {
                     if (post == null) {
-                        return;
+                        return null;
                     }
                     // TODO: the value before write is set to be Undefined and isScriptLocal is
                     // always true
-                    cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getName(), getValue(inputs), Undefined.instance, false, true);
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getName(), getValue(inputs), Undefined.instance, false, true);
                 }
             };
         } else {
@@ -58,16 +58,17 @@ public class WriteFactory extends AbstractFactory {
                 @Child CallbackNode cbNode = new CallbackNode();
 
                 @Override
-                public void executePost(VirtualFrame frame, Object result,
+                public Object executePost(VirtualFrame frame, Object result,
                                 Object[] inputs) throws InteropException {
                     if (post == null) {
-                        return;
+                        return null;
                     }
                     if (isGlobal(inputs)) {
                         // TODO: the value before write is set to be Undefined and isScriptLocal is
                         // always true
-                        cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getProperty(), getValue(inputs), Undefined.instance, true, true);
+                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getProperty(), getValue(inputs), Undefined.instance, true, true);
                     }
+                    return null;
                 }
             };
         }

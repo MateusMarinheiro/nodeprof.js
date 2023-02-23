@@ -44,13 +44,15 @@ public class AsyncRootFactory extends AbstractFactory {
             }
 
             @Override
-            public void executePost(VirtualFrame frame, Object result,
+            public Object executePost(VirtualFrame frame, Object result,
                             Object[] inputs) throws InteropException {
 
                 if (post != null && this.isAsyncRoot()) {
                     assert (result instanceof DynamicObject);
                     cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), result, createWrappedException(null));
                 }
+
+                return null;
             }
 
             @Override

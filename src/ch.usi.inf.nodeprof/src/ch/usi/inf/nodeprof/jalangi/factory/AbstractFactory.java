@@ -19,6 +19,7 @@ package ch.usi.inf.nodeprof.jalangi.factory;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -47,12 +48,13 @@ import ch.usi.inf.nodeprof.utils.Logger;
 
 // a factory corresponds to a callback defined in Jalangi-like analysis
 public abstract class AbstractFactory implements
-                AnalysisFactory<BaseEventHandlerNode> {
+        AnalysisFactory<BaseEventHandlerNode> {
     // the jalangi analysis object
     protected final Object jalangiAnalysis;
 
     protected final DynamicObject pre;
     protected final DynamicObject post;
+    protected final DynamicObject onInput;
 
     protected final String jalangiCallback;
 
@@ -111,11 +113,17 @@ public abstract class AbstractFactory implements
     }
 
     public AbstractFactory(String jalangiCallback, Object jalangiAnalysis, DynamicObject pre,
-                    DynamicObject post) {
+                           DynamicObject post, DynamicObject onInput) {
         this.jalangiCallback = jalangiCallback;
         this.jalangiAnalysis = jalangiAnalysis;
         this.pre = pre;
         this.post = post;
+        this.onInput = onInput;
+    }
+
+    public AbstractFactory(String jalangiCallback, Object jalangiAnalysis, DynamicObject pre,
+                           DynamicObject post) {
+        this(jalangiCallback, jalangiAnalysis, pre, post, null);
     }
 
     /**
@@ -161,7 +169,6 @@ public abstract class AbstractFactory implements
     private static boolean nestedControl = false;
 
     /**
-     *
      * @return true to proceed with the call or false to skip the call
      */
     private static boolean beforeCall() {
@@ -181,21 +188,37 @@ public abstract class AbstractFactory implements
     }
 
     public class CallbackNode extends Node {
-        @Node.Child DirectCallNode preCall = pre == null ? null : Truffle.getRuntime().createDirectCallNode(JSFunction.getCallTarget(pre));
-        @Node.Child DirectCallNode postCall = post == null ? null : Truffle.getRuntime().createDirectCallNode(JSFunction.getCallTarget(post));
-        @Child private InteropLibrary interopLibrary = InteropLibrary.getFactory().createDispatched(3);
+        @Node.Child
+        DirectCallNode preCall = pre != null ? Truffle.getRuntime().createDirectCallNode(JSFunction.getCallTarget(pre)) : null;
+        @Node.Child
+        DirectCallNode postCall = post != null ? Truffle.getRuntime().createDirectCallNode(JSFunction.getCallTarget(post)) : null;
+
+        @Node.Child
+        DirectCallNode onInputCall = onInput != null ? Truffle.getRuntime().createDirectCallNode(JSFunction.getCallTarget(onInput)) : null;
+
+        @Child
+        private InteropLibrary interopLibrary = InteropLibrary.getFactory().createDispatched(3);
 
         private void checkDeactivate(Object ret, BaseEventHandlerNode handler) {
-            if (ret != null && ret != Undefined.instance && JSObject.isJSObject(ret)) {
-                try {
-                    Object prop = interopLibrary.readMember(ret, "deactivate");
-                    if (interopLibrary.asBoolean(prop)) {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        handler.deactivate();
-                    }
-                } catch (UnsupportedMessageException | UnknownIdentifierException ignored) {
-                    // ignore, don't deactivate
+            Object deactivate = readReturnMember(ret, "deactivate");
+            if (deactivate == null) return;
+
+            try {
+                if (interopLibrary.asBoolean(deactivate)) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    handler.deactivate();
                 }
+            } catch (UnsupportedMessageException e) {
+            }
+        }
+
+        private Object readReturnMember(Object obj, String prop) {
+            if (obj == null || obj == Undefined.instance || !JSObject.isJSObject(obj)) return null;
+
+            try {
+                return interopLibrary.readMember(obj, prop);
+            } catch (UnsupportedMessageException | UnknownIdentifierException e) {
+                return null;
             }
         }
 
@@ -215,18 +238,40 @@ public abstract class AbstractFactory implements
             }
         }
 
-        public void postCall(BaseEventHandlerNode handler, Object... args) {
+        public Object postCall(BaseEventHandlerNode handler, Object... args) {
             assertNoStringLeak(args);
             if (post != null) {
                 if (beforeCall()) {
                     try {
                         Object ret = postCall.call(args);
                         checkDeactivate(ret, handler);
+
+                        // Get result from js call and return it to change node result if needed
+                        // Maybe this would be nicer to do in the specific factories for more fine-grained control
+                        return readReturnMember(ret, "result");
                     } catch (JSInterruptedExecutionException e) {
                         Logger.error("execution cancelled probably due to timeout");
                     } finally {
                         afterCall();
                     }
+                }
+            }
+
+            return null;
+        }
+
+        public void onInputCall(BaseEventHandlerNode handler, Object... args) {
+            assertNoStringLeak(args);
+            if (onInput == null) return;
+
+            if (beforeCall()) {
+                try {
+                    Object ret = onInputCall.call(args);
+                    checkDeactivate(ret, handler);
+                } catch (JSInterruptedExecutionException e) {
+                    Logger.error("execution cancelled probably due to timeout");
+                } finally {
+                    afterCall();
                 }
             }
         }

@@ -62,7 +62,7 @@ public class BranchCoverage extends TestableNodeProfAnalysis {
                     @Child ReportEntryNode falseCounter = ReportEntryNodeGen.create(falseDB, new SimpleCounterReport.SimleReportFactory());
 
                     @Override
-                    public void executePost(VirtualFrame frame, Object result, Object[] inputs) {
+                    public Object executePost(VirtualFrame frame, Object result, Object[] inputs) {
                         if (JSRuntime.toBoolean(result)) {
                             addDebugEvent("BC", getSourceIID(), ProfiledTagEnum.CF_BRANCH, true);
                             ((SimpleCounterReport) (trueCounter.execute(getSourceIID()))).incre();
@@ -70,6 +70,8 @@ public class BranchCoverage extends TestableNodeProfAnalysis {
                             addDebugEvent("BC", getSourceIID(), ProfiledTagEnum.CF_BRANCH, false);
                             ((SimpleCounterReport) (falseCounter.execute(getSourceIID()))).incre();
                         }
+
+                        return null;
                     }
                 };
             }

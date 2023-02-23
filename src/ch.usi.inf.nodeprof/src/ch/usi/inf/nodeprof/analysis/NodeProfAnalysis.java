@@ -16,11 +16,13 @@
  * *****************************************************************************/
 package ch.usi.inf.nodeprof.analysis;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map.Entry;
-
+import ch.usi.inf.nodeprof.ProfiledTagEnum;
+import ch.usi.inf.nodeprof.analysis.AnalysisFilterSourceList.ScopeEnum;
+import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
+import ch.usi.inf.nodeprof.handlers.MultiEventHandler;
+import ch.usi.inf.nodeprof.jalangi.NodeProfJalangi;
+import ch.usi.inf.nodeprof.utils.GlobalConfiguration;
+import ch.usi.inf.nodeprof.utils.Logger;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
@@ -36,13 +38,10 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.js.nodes.instrumentation.JSTags;
 import com.oracle.truffle.js.nodes.instrumentation.JSTags.InputNodeTag;
 
-import ch.usi.inf.nodeprof.ProfiledTagEnum;
-import ch.usi.inf.nodeprof.analysis.AnalysisFilterSourceList.ScopeEnum;
-import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
-import ch.usi.inf.nodeprof.handlers.MultiEventHandler;
-import ch.usi.inf.nodeprof.jalangi.NodeProfJalangi;
-import ch.usi.inf.nodeprof.utils.GlobalConfiguration;
-import ch.usi.inf.nodeprof.utils.Logger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 public abstract class NodeProfAnalysis {
     private final Env env;
@@ -79,7 +78,7 @@ public abstract class NodeProfAnalysis {
 
     @TruffleBoundary
     public static NodeProfAnalysis loadAnalysisFromClass(String analysisClass, Instrumenter instrumenter,
-                    Env env) {
+                                                         Env env) {
         /**
          * create the NodeProfAnalysis using reflection
          */
@@ -167,7 +166,7 @@ public abstract class NodeProfAnalysis {
 
     /**
      * Callback at the end of the execution for the analysis.
-     *
+     * <p>
      * first print the result and then clean the states
      */
 
@@ -178,7 +177,6 @@ public abstract class NodeProfAnalysis {
     }
 
     /**
-     *
      * @param result the result to be compared
      * @return true if no error found during the analysis
      */
@@ -195,7 +193,7 @@ public abstract class NodeProfAnalysis {
 
     @TruffleBoundary
     public void onCallback(ProfiledTagEnum e,
-                    AnalysisFactory<BaseEventHandlerNode> factory) {
+                           AnalysisFactory<BaseEventHandlerNode> factory) {
         if (GlobalConfiguration.DEBUG) {
             Logger.debug("adding callback for tag " + e.getTag().getSimpleName());
         }
@@ -226,12 +224,12 @@ public abstract class NodeProfAnalysis {
 
     // tags that require a separate factory for instrumentation
     private static final ProfiledTagEnum[] separateFactoryTags = {
-                    ProfiledTagEnum.BUILTIN,
-                    ProfiledTagEnum.STATEMENT,
-                    ProfiledTagEnum.EXPRESSION,
-                    ProfiledTagEnum.CF_BRANCH,
-                    ProfiledTagEnum.ROOT,
-                    ProfiledTagEnum.DECLARE
+            ProfiledTagEnum.BUILTIN,
+            ProfiledTagEnum.STATEMENT,
+            ProfiledTagEnum.EXPRESSION,
+            ProfiledTagEnum.CF_BRANCH,
+            ProfiledTagEnum.ROOT,
+            ProfiledTagEnum.DECLARE
     };
 
     @TruffleBoundary
@@ -252,20 +250,20 @@ public abstract class NodeProfAnalysis {
                     SourceSectionFilter filter = SourceSectionFilter.newBuilder().tagIs(tag.getTag()).sourceIs(sourcePredicate).build();
 
                     getInstrumenter().attachExecutionEventFactory(
-                                    filter,
-                                    tag.getExpectedNumInputs() == 0 ? null : SourceSectionFilter.newBuilder().tagIs(StandardTags.ExpressionTag.class, InputNodeTag.class).build(),
-                                    new ExecutionEventNodeFactory() {
-                                        @TruffleBoundary
-                                        public ExecutionEventNode create(EventContext context) {
-                                            InstrumentableNode instrumentedNode = (InstrumentableNode) context.getInstrumentedNode();
-                                            if (instrumentedNode.hasTag(tag.getTag())) {
-                                                return createAndSimplifyExecutionEventNode(context, tag, handlerMapping.get(tag));
-                                            } else {
-                                                return new ExecutionEventNode() {
-                                                };
-                                            }
-                                        }
-                                    });
+                            filter,
+                            tag.getExpectedNumInputs() == 0 ? null : SourceSectionFilter.newBuilder().tagIs(StandardTags.ExpressionTag.class, InputNodeTag.class).build(),
+                            new ExecutionEventNodeFactory() {
+                                @TruffleBoundary
+                                public ExecutionEventNode create(EventContext context) {
+                                    InstrumentableNode instrumentedNode = (InstrumentableNode) context.getInstrumentedNode();
+                                    if (instrumentedNode.hasTag(tag.getTag())) {
+                                        return createAndSimplifyExecutionEventNode(context, tag, handlerMapping.get(tag));
+                                    } else {
+                                        return new ExecutionEventNode() {
+                                        };
+                                    }
+                                }
+                            });
                 }
             }
 
@@ -275,54 +273,101 @@ public abstract class NodeProfAnalysis {
                 SourceSectionFilter eventFilter = SourceSectionFilter.newBuilder().tagIs(eventTags).sourceIs(sourceFilter).build();
                 SourceSectionFilter inputFilter = SourceSectionFilter.newBuilder().tagIs(StandardTags.ExpressionTag.class, InputNodeTag.class).build();
 
+//                getInstrumenter().attachExecutionEventListener(
+//                        SourceSectionFilter.newBuilder().tagIs(ProfiledTagEnum.BINARY.getTag()).build(),
+//                        new ExecutionEventListener() {
+//                            @Override
+//                            public void onEnter(EventContext context, VirtualFrame frame) {
+//
+//                            }
+//
+//                            @TruffleBoundary
+//                            public Object getAttribute(String key, EventContext context) {
+//                                Object result = null;
+//                                try {
+//                                    result = InteropLibrary.getFactory().getUncached().readMember(((InstrumentableNode) context.getInstrumentedNode()).getNodeObject(), key);
+//                                } catch (Exception e) {
+//                                    // ignore
+//                                }
+//                                return result;
+//                            }
+//
+//
+//                            @Override
+//                            public void onReturnValue(EventContext context, VirtualFrame frame, Object result) {
+//                                if (!result.toString().equals("x")) return;
+//
+//                                throw context.createUnwind(42);
+//
+////                                String op = (String) getAttribute("operator", context);
+////                                System.out.println(op);
+////
+////                                boolean isLogic = op.equals("||") || op.equals("&&");
+////                                if (isLogic) return;
+////
+////                                System.out.println("Listener Return: " + result);
+//                            }
+//
+//                            @Override
+//                            public Object onUnwind(EventContext context, VirtualFrame frame, Object info) {
+//                                return info;
+//                            }
+//
+//                            @Override
+//                            public void onReturnExceptional(EventContext context, VirtualFrame frame, Throwable exception) {
+//
+//                            }
+//                        }
+//                );
+
                 getInstrumenter().attachExecutionEventFactory(
-                                eventFilter,
-                                inputFilter,
-                                new ExecutionEventNodeFactory() {
+                        eventFilter,
+                        inputFilter,
+                        new ExecutionEventNodeFactory() {
 
-                                    @Override
-                                    @TruffleBoundary
-                                    public ExecutionEventNode create(EventContext context) {
-                                        int count = 0;
-                                        InstrumentableNode instrumentedNode = (InstrumentableNode) context.getInstrumentedNode();
-                                        for (Entry<ProfiledTagEnum, ArrayList<AnalysisFactory<BaseEventHandlerNode>>> entry : handlerMapping.entrySet()) {
-                                            if (instrumentedNode.hasTag(entry.getKey().getTag()) && !Arrays.asList(separateFactoryTags).contains(entry.getKey())) {
-                                                count += 1;
-                                            }
-                                        }
-                                        // a node should never have two tags the same time(except
-                                        // for the built-in)
-                                        if (count > 1) {
-                                            Logger.error("a node has more than 1 profiling tags!!");
-                                            String tags = "";
-                                            for (Entry<ProfiledTagEnum, ArrayList<AnalysisFactory<BaseEventHandlerNode>>> entry : handlerMapping.entrySet()) {
-                                                if (instrumentedNode.hasTag(entry.getKey().getTag()) && !Arrays.asList(separateFactoryTags).contains(entry.getKey())) {
-                                                    tags += entry.getKey().getTag().getSimpleName() + " ";
-                                                }
-                                            }
-                                            Logger.error(context.getInstrumentedSourceSection(), context.getInstrumentedNode().getClass().getName() + " has tags: " + tags);
-                                        }
-
-                                        assert (count <= 1);
-                                        for (Entry<ProfiledTagEnum, ArrayList<AnalysisFactory<BaseEventHandlerNode>>> entry : handlerMapping.entrySet()) {
-                                            try {
-                                                ProfiledTagEnum key = entry.getKey();
-                                                Source source = context.getInstrumentedSourceSection().getSource();
-                                                if (instrumentedNode.hasTag(key.getTag()) && !Arrays.asList(separateFactoryTags).contains(entry.getKey()) && sourceFilter.testTag(source, key)) {
-                                                    return createAndSimplifyExecutionEventNode(context, entry.getKey(), entry.getValue());
-                                                }
-                                            } catch (Exception exception) {
-                                                exception.printStackTrace();
-                                            }
-                                        }
-                                        // if there is no handler for this node, return an empty
-                                        // ExecutionEventNode which should bring zero overhead after
-                                        // compilation
-                                        return new ExecutionEventNode() {
-                                        };
+                            @Override
+                            @TruffleBoundary
+                            public ExecutionEventNode create(EventContext context) {
+                                int count = 0;
+                                InstrumentableNode instrumentedNode = (InstrumentableNode) context.getInstrumentedNode();
+                                for (Entry<ProfiledTagEnum, ArrayList<AnalysisFactory<BaseEventHandlerNode>>> entry : handlerMapping.entrySet()) {
+                                    if (instrumentedNode.hasTag(entry.getKey().getTag()) && !Arrays.asList(separateFactoryTags).contains(entry.getKey())) {
+                                        count += 1;
                                     }
+                                }
+                                // a node should never have two tags the same time(except
+                                // for the built-in)
+                                if (count > 1) {
+                                    Logger.error("a node has more than 1 profiling tags!!");
+                                    String tags = "";
+                                    for (Entry<ProfiledTagEnum, ArrayList<AnalysisFactory<BaseEventHandlerNode>>> entry : handlerMapping.entrySet()) {
+                                        if (instrumentedNode.hasTag(entry.getKey().getTag()) && !Arrays.asList(separateFactoryTags).contains(entry.getKey())) {
+                                            tags += entry.getKey().getTag().getSimpleName() + " ";
+                                        }
+                                    }
+                                    Logger.error(context.getInstrumentedSourceSection(), context.getInstrumentedNode().getClass().getName() + " has tags: " + tags);
+                                }
 
-                                });
+                                assert (count <= 1);
+                                for (Entry<ProfiledTagEnum, ArrayList<AnalysisFactory<BaseEventHandlerNode>>> entry : handlerMapping.entrySet()) {
+                                    try {
+                                        ProfiledTagEnum key = entry.getKey();
+                                        Source source = context.getInstrumentedSourceSection().getSource();
+                                        if (instrumentedNode.hasTag(key.getTag()) && !Arrays.asList(separateFactoryTags).contains(entry.getKey()) && sourceFilter.testTag(source, key)) {
+                                            return createAndSimplifyExecutionEventNode(context, entry.getKey(), entry.getValue());
+                                        }
+                                    } catch (Exception exception) {
+                                        exception.printStackTrace();
+                                    }
+                                }
+                                // if there is no handler for this node, return an empty
+                                // ExecutionEventNode which should bring zero overhead after
+                                // compilation
+                                return new ExecutionEventNode() {
+                                };
+                            }
+
+                        });
             }
         }
         this.handlers = new HashMap<>();
@@ -371,7 +416,7 @@ public abstract class NodeProfAnalysis {
         }
         if (handler != null) {
             return new ProfilerExecutionEventNode(key, context,
-                            handler);
+                    handler);
         } else {
             return new ExecutionEventNode() {
             };
@@ -396,19 +441,19 @@ public abstract class NodeProfAnalysis {
 
     @TruffleBoundary
     public void onAllCallback(ExecutionEventNodeFactory factory,
-                    SourcePredicate sourcePredicate) {
+                              SourcePredicate sourcePredicate) {
         getInstrumenter().attachExecutionEventFactory(
-                        SourceSectionFilter.newBuilder().tagIs(ProfiledTagEnum.getTags()).sourceIs(sourcePredicate).build(),
-                        SourceSectionFilter.newBuilder().tagIs(StandardTags.ExpressionTag.class, JSTags.InputNodeTag.class).build(),
-                        factory);
+                SourceSectionFilter.newBuilder().tagIs(ProfiledTagEnum.getTags()).sourceIs(sourcePredicate).build(),
+                SourceSectionFilter.newBuilder().tagIs(StandardTags.ExpressionTag.class, JSTags.InputNodeTag.class).build(),
+                factory);
     }
 
     @TruffleBoundary
     public void onSingleTagCallback(Class<? extends Tag> tag, ExecutionEventNodeFactory factory,
-                    SourcePredicate sourcePredicate) {
+                                    SourcePredicate sourcePredicate) {
         getInstrumenter().attachExecutionEventFactory(
-                        SourceSectionFilter.newBuilder().tagIs(tag).sourceIs(sourcePredicate).build(),
-                        SourceSectionFilter.newBuilder().tagIs(StandardTags.ExpressionTag.class, JSTags.InputNodeTag.class).build(),
-                        factory);
+                SourceSectionFilter.newBuilder().tagIs(tag).sourceIs(sourcePredicate).build(),
+                SourceSectionFilter.newBuilder().tagIs(StandardTags.ExpressionTag.class, JSTags.InputNodeTag.class).build(),
+                factory);
     }
 }

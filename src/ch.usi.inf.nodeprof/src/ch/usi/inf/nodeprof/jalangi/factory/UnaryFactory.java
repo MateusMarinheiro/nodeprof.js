@@ -44,11 +44,12 @@ public class UnaryFactory extends AbstractFactory {
             }
 
             @Override
-            public void executePost(VirtualFrame frame, Object result,
-                            Object[] inputs) throws InteropException {
+            public Object executePost(VirtualFrame frame, Object result,
+                                      Object[] inputs) throws InteropException {
                 if (post != null) {
-                    cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getOp(), getValue(inputs, this), convertResult(result));
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getOp(), getValue(inputs, this), convertResult(result));
                 }
+                return null;
             }
         };
     }

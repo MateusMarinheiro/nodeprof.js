@@ -126,7 +126,7 @@ public class TypedArray extends TestableNodeProfAnalysis {
                     @Child IsArrayFunctionNode arrayFunc = IsArrayFunctionNodeGen.create();
 
                     @Override
-                    public void executePost(VirtualFrame frame,
+                    public Object executePost(VirtualFrame frame,
                                     Object result, Object[] inputs) {
                         Object funcObj = getFunction(inputs);
                         if (funcObj instanceof DynamicObject) {
@@ -137,6 +137,7 @@ public class TypedArray extends TestableNodeProfAnalysis {
                                 getReportNode.execute(this.getSourceIID());
                             }
                         }
+                        return null;
                     }
                 };
             }
@@ -156,7 +157,7 @@ public class TypedArray extends TestableNodeProfAnalysis {
                     @Child ReportEntryNode getReportNode = ReportEntryNodeGen.create(db, new TypedArrayFactory());
 
                     @Override
-                    public void executePost(VirtualFrame frame,
+                    public Object executePost(VirtualFrame frame,
                                     Object result, Object[] inputs) {
                         if (this.getLiteralType().equals("ArrayLiteral")) {
                             addDebugEvent("TA_ARRAY_ALLOC", getSourceIID(), ProfiledTagEnum.LITERAL);
@@ -164,6 +165,7 @@ public class TypedArray extends TestableNodeProfAnalysis {
                             TypedArrayReport report = (TypedArrayReport) getReportNode.execute(this.getSourceIID());
                             report.isLiteral = true;
                         }
+                        return null;
                     }
                 };
             }
@@ -181,7 +183,7 @@ public class TypedArray extends TestableNodeProfAnalysis {
                     final boolean isArrayPop = this.funcName.equals("Array.prototype.pop");
 
                     @Override
-                    public void executePost(VirtualFrame frame,
+                    public Object executePost(VirtualFrame frame,
                                     Object result, Object[] inputs) {
                         if (this.arrayPrototype) {
                             int iid = getAllocation(getReceiver(frame));
@@ -204,6 +206,7 @@ public class TypedArray extends TestableNodeProfAnalysis {
                                 }
                             }
                         }
+                        return null;
                     }
 
                 };

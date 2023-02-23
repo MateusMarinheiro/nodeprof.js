@@ -41,11 +41,12 @@ public class ConditionalFactory extends AbstractFactory {
                 @Child CallbackNode cbNode = new CallbackNode();
 
                 @Override
-                public void executePost(VirtualFrame frame, Object result,
+                public Object executePost(VirtualFrame frame, Object result,
                                 Object[] inputs) throws InteropException {
                     if (post != null && isConditional()) {
-                        cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result));
+                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result));
                     }
+                    return null;
                 }
             };
         } else {
@@ -53,11 +54,12 @@ public class ConditionalFactory extends AbstractFactory {
                 @Child CallbackNode cbNode = new CallbackNode();
 
                 @Override
-                public void executePost(VirtualFrame frame, Object result,
+                public Object executePost(VirtualFrame frame, Object result,
                                 Object[] inputs) throws InteropException {
                     if (post != null && this.isLogic()) {
-                        cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result));
+                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result));
                     }
+                    return null;
                 }
             };
         }

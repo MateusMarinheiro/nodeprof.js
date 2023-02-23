@@ -62,11 +62,12 @@ public class LiteralFactory extends AbstractFactory {
             @Child CallbackNode cbNode = new CallbackNode();
 
             @Override
-            public void executePost(VirtualFrame frame, Object result,
+            public Object executePost(VirtualFrame frame, Object result,
                             Object[] inputs) throws InteropException {
                 if (post != null && !skip) {
-                    cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result), Undefined.instance, getLiteralTypeTString());
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result), Undefined.instance, getLiteralTypeTString());
                 }
+                return null;
             }
 
         };

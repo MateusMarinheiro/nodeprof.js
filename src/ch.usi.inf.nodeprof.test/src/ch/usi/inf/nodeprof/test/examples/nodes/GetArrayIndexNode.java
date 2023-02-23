@@ -17,6 +17,7 @@
 package ch.usi.inf.nodeprof.test.examples.nodes;
 
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.js.nodes.JavaScriptNode;
 import com.oracle.truffle.js.nodes.cast.ToArrayIndexNode;
 import com.oracle.truffle.js.nodes.cast.ToArrayIndexNodeGen;
 

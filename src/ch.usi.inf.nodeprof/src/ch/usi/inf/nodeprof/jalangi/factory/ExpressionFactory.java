@@ -46,11 +46,13 @@ public class ExpressionFactory extends AbstractFactory {
             }
 
             @Override
-            public void executePost(VirtualFrame frame, Object result,
+            public Object executePost(VirtualFrame frame, Object result,
                             Object[] inputs) throws InteropException {
                 if (post != null) {
-                    cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getExpressionType(), convertResult(result));
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getExpressionType(), convertResult(result));
                 }
+
+                return null;
             }
 
         };

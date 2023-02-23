@@ -55,16 +55,18 @@ public class EvalFactory extends AbstractFactory {
             }
 
             @Override
-            public void executePost(VirtualFrame frame, Object result,
+            public Object executePost(VirtualFrame frame, Object result,
                             Object[] inputs) throws InteropException {
                 if (post != null) {
                     if (!isInvoke) {
-                        cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getCode(inputs), convertResult(result));
+                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getCode(inputs), convertResult(result));
                     } else {
                         inputs[1] = getCode(inputs);
-                        cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), inputs[0], Undefined.instance, makeArgs.executeArguments(inputs), convertResult(result), false, false, 0, 0);
+                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), inputs[0], Undefined.instance, makeArgs.executeArguments(inputs), convertResult(result), false, false, 0, 0);
                     }
                 }
+
+                return null;
             }
         };
     }

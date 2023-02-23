@@ -63,12 +63,17 @@ public abstract class BinaryEventHandler extends BaseSingleTagEventHandler {
         if (inputs.length < 2) {
             return Undefined.instance;
         }
-        return assertGetInput(1, inputs, "right");
+
+        // if there is no right just pass undefined and let the analysis decide what to do
+        // right can be e.g. null for the '??' operator
+//        return assertGetInput(1, inputs, "right");
+        Object rightVal = inputs[1];
+        return rightVal != null ? rightVal : Undefined.instance;
     }
 
     /**
      * the logic operator '||' and '&&' are two special binary operations.
-     *
+     * <p>
      * e.g., true || right, false && right would only evaluate the left operand
      *
      * @return true if the operator is '||' or '&&'

@@ -88,9 +88,8 @@ public class JalangiAnalysis {
 
     /**
      * The Jalangi analysis object
-     *
+     * <p>
      * this will be used as the receiver of the callback events
-     *
      */
     public final Object jsAnalysis;
 
@@ -99,11 +98,13 @@ public class JalangiAnalysis {
      */
     final NodeProfJalangi instrument;
 
-    @SuppressWarnings("serial") public static final Map<String, EnumSet<ProfiledTagEnum>> callbackMap = Collections.unmodifiableMap(new HashMap<String, EnumSet<ProfiledTagEnum>>() {
+    @SuppressWarnings("serial")
+    public static final Map<String, EnumSet<ProfiledTagEnum>> callbackMap = Collections.unmodifiableMap(new HashMap<String, EnumSet<ProfiledTagEnum>>() {
         {
             // function calls
             put("functionEnter", EnumSet.of(ROOT));
             put("functionExit", EnumSet.of(ROOT));
+            put("invokeFunPreArg", EnumSet.of(INVOKE, NEW));
             put("invokeFunPre", EnumSet.of(INVOKE, NEW));
             put("invokeFun", EnumSet.of(INVOKE, NEW));
 
@@ -163,15 +164,15 @@ public class JalangiAnalysis {
     });
 
     public static final Set<String> unimplementedCallbacks = Collections.unmodifiableSet(
-                    new HashSet<>(Arrays.asList("forinObject",
-                                    "instrumentCodePre", "instrumentCode", // TODO will those be
-                                                                           // supported at all?
-                                    "onReady", // TODO should this be ignored instead
-                                    "runInstrumentedFunctionBody", "scriptEnter", "scriptExit", "_throw", "_with")));
+            new HashSet<>(Arrays.asList("forinObject",
+                    "instrumentCodePre", "instrumentCode", // TODO will those be
+                    // supported at all?
+                    "onReady", // TODO should this be ignored instead
+                    "runInstrumentedFunctionBody", "scriptEnter", "scriptExit", "_throw", "_with")));
 
     public static final Set<String> ignoredCallbacks = Collections.unmodifiableSet(
-                    // endExecution is a high-level event handled by the jalangi.js script
-                    new HashSet<>(Arrays.asList("endExecution")));
+            // endExecution is a high-level event handled by the jalangi.js script
+            new HashSet<>(Arrays.asList("endExecution")));
 
     @TruffleBoundary
     public JalangiAnalysis(NodeProfJalangi nodeprofJalangi, Object jsAnalysis) {
@@ -185,82 +186,82 @@ public class JalangiAnalysis {
         if (GlobalConfiguration.DEBUG) {
             Logger.debug("analysis is ready " + callbacks.keySet());
         }
-        if (this.callbacks.containsKey("invokeFunPre") || callbacks.containsKey("invokeFun")) {
-            InvokeFactory invokeFactory = new InvokeFactory(this.jsAnalysis, ProfiledTagEnum.INVOKE, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"));
+        if (this.callbacks.containsKey("invokeFunPre") || callbacks.containsKey("invokeFun") || callbacks.containsKey("invokeFunPreArg")) {
+            InvokeFactory invokeFactory = new InvokeFactory(this.jsAnalysis, ProfiledTagEnum.INVOKE, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"), callbacks.get("invokeFunPreArg"));
             this.instrument.onCallback(
-                            ProfiledTagEnum.INVOKE,
-                            invokeFactory);
-            InvokeFactory newFactory = new InvokeFactory(this.jsAnalysis, ProfiledTagEnum.NEW, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"));
+                    ProfiledTagEnum.INVOKE,
+                    invokeFactory);
+            InvokeFactory newFactory = new InvokeFactory(this.jsAnalysis, ProfiledTagEnum.NEW, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"), callbacks.get("invokeFunPreArg"));
             this.instrument.onCallback(
-                            ProfiledTagEnum.NEW,
-                            newFactory);
+                    ProfiledTagEnum.NEW,
+                    newFactory);
             this.instrument.onCallback(
-                            ProfiledTagEnum.EVAL,
-                            new EvalFactory(this.jsAnalysis, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"), true));
+                    ProfiledTagEnum.EVAL,
+                    new EvalFactory(this.jsAnalysis, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"), true));
         }
 
         if (this.callbacks.containsKey("putFieldPre") || callbacks.containsKey("putField")) {
             this.instrument.onCallback(
-                            ProfiledTagEnum.PROPERTY_WRITE,
-                            new PutFieldFactory(this.jsAnalysis, callbacks.get("putFieldPre"), callbacks.get("putField")));
+                    ProfiledTagEnum.PROPERTY_WRITE,
+                    new PutFieldFactory(this.jsAnalysis, callbacks.get("putFieldPre"), callbacks.get("putField")));
             this.instrument.onCallback(
-                            ProfiledTagEnum.ELEMENT_WRITE,
-                            new PutElementFactory(this.jsAnalysis, callbacks.get("putFieldPre"), callbacks.get("putField")));
+                    ProfiledTagEnum.ELEMENT_WRITE,
+                    new PutElementFactory(this.jsAnalysis, callbacks.get("putFieldPre"), callbacks.get("putField")));
         }
 
         if (this.callbacks.containsKey("getFieldPre") || callbacks.containsKey("getField")) {
             this.instrument.onCallback(
-                            ProfiledTagEnum.PROPERTY_READ,
-                            new GetFieldFactory(this.jsAnalysis, callbacks.get("getFieldPre"), callbacks.get("getField")));
+                    ProfiledTagEnum.PROPERTY_READ,
+                    new GetFieldFactory(this.jsAnalysis, callbacks.get("getFieldPre"), callbacks.get("getField")));
             this.instrument.onCallback(
-                            ProfiledTagEnum.ELEMENT_READ,
-                            new GetElementFactory(this.jsAnalysis, callbacks.get("getFieldPre"), callbacks.get("getField")));
+                    ProfiledTagEnum.ELEMENT_READ,
+                    new GetElementFactory(this.jsAnalysis, callbacks.get("getFieldPre"), callbacks.get("getField")));
         }
 
         if (this.callbacks.containsKey("read")) {
             this.instrument.onCallback(ProfiledTagEnum.VAR_READ, new ReadFactory(
-                            this.jsAnalysis, callbacks.get("read"), false));
+                    this.jsAnalysis, callbacks.get("read"), false));
             this.instrument.onCallback(ProfiledTagEnum.PROPERTY_READ, new ReadFactory(
-                            this.jsAnalysis, callbacks.get("read"), true));
+                    this.jsAnalysis, callbacks.get("read"), true));
         }
 
         if (this.callbacks.containsKey("write")) {
             this.instrument.onCallback(ProfiledTagEnum.VAR_WRITE, new WriteFactory(
-                            this.jsAnalysis, callbacks.get("write"), false));
+                    this.jsAnalysis, callbacks.get("write"), false));
             this.instrument.onCallback(ProfiledTagEnum.PROPERTY_WRITE,
-                            new WriteFactory(this.jsAnalysis, callbacks.get("write"),
-                                            true));
+                    new WriteFactory(this.jsAnalysis, callbacks.get("write"),
+                            true));
         }
 
         if (this.callbacks.containsKey("binaryPre") || this.callbacks.containsKey("binary")) {
             this.instrument.onCallback(ProfiledTagEnum.BINARY,
-                            new BinaryFactory(this.jsAnalysis,
-                                            callbacks.get("binaryPre"),
-                                            callbacks.get("binary")));
+                    new BinaryFactory(this.jsAnalysis,
+                            callbacks.get("binaryPre"),
+                            callbacks.get("binary")));
         }
 
         if (this.callbacks.containsKey("literal")) {
             this.instrument.onCallback(ProfiledTagEnum.LITERAL, new LiteralFactory(
-                            this.jsAnalysis, callbacks.get("literal")));
+                    this.jsAnalysis, callbacks.get("literal")));
         }
 
         if (this.callbacks.containsKey("declarePre") || this.callbacks.containsKey("declare")) {
             this.instrument.onCallback(ProfiledTagEnum.DECLARE, new DeclareFactory(
-                            this.jsAnalysis, callbacks.get("declarePre"), callbacks.get("declare")));
+                    this.jsAnalysis, callbacks.get("declarePre"), callbacks.get("declare")));
         }
 
         if (this.callbacks.containsKey("unaryPre") || this.callbacks.containsKey("unary")) {
             this.instrument.onCallback(ProfiledTagEnum.UNARY,
-                            new UnaryFactory(this.jsAnalysis, callbacks.get("unaryPre"),
-                                            callbacks.get("unary")));
+                    new UnaryFactory(this.jsAnalysis, callbacks.get("unaryPre"),
+                            callbacks.get("unary")));
         }
 
         if (this.callbacks.containsKey("conditional")) {
             this.instrument.onCallback(ProfiledTagEnum.CF_BRANCH, new ConditionalFactory(
-                            this.jsAnalysis, callbacks.get("conditional"), false));
+                    this.jsAnalysis, callbacks.get("conditional"), false));
             this.instrument.onCallback(
-                            ProfiledTagEnum.BINARY,
-                            new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
+                    ProfiledTagEnum.BINARY,
+                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
         }
 
         /*
@@ -268,32 +269,32 @@ public class JalangiAnalysis {
          */
         if (this.callbacks.containsKey("functionEnter") || this.callbacks.containsKey("functionExit")) {
             this.instrument.onCallback(
-                            ProfiledTagEnum.ROOT,
-                            new RootFactory(this.jsAnalysis,
-                                            callbacks.get("functionEnter"),
-                                            callbacks.get("functionExit"),
-                                            this.instrument.getEnv()));
+                    ProfiledTagEnum.ROOT,
+                    new RootFactory(this.jsAnalysis,
+                            callbacks.get("functionEnter"),
+                            callbacks.get("functionExit"),
+                            this.instrument.getEnv()));
         }
 
         if (this.callbacks.containsKey("startExpression") || this.callbacks.containsKey("endExpression")) {
             this.instrument.onCallback(
-                            ProfiledTagEnum.EXPRESSION,
-                            new ExpressionFactory(this.jsAnalysis,
-                                            callbacks.get("startExpression"), callbacks.get("endExpression")));
+                    ProfiledTagEnum.EXPRESSION,
+                    new ExpressionFactory(this.jsAnalysis,
+                            callbacks.get("startExpression"), callbacks.get("endExpression")));
         }
 
         if (this.callbacks.containsKey("startStatement") || this.callbacks.containsKey("endStatement")) {
             this.instrument.onCallback(
-                            ProfiledTagEnum.STATEMENT,
-                            new StatementFactory(this.jsAnalysis,
-                                            callbacks.get("startStatement"), callbacks.get("endStatement")));
+                    ProfiledTagEnum.STATEMENT,
+                    new StatementFactory(this.jsAnalysis,
+                            callbacks.get("startStatement"), callbacks.get("endStatement")));
         }
 
         if (this.callbacks.containsKey("builtinEnter") || this.callbacks.containsKey("builtinExit")) {
             this.instrument.onCallback(
-                            ProfiledTagEnum.BUILTIN,
-                            new BuiltinFactory(this.jsAnalysis,
-                                            callbacks.get("builtinEnter"), callbacks.get("builtinExit"), null));
+                    ProfiledTagEnum.BUILTIN,
+                    new BuiltinFactory(this.jsAnalysis,
+                            callbacks.get("builtinEnter"), callbacks.get("builtinExit"), null));
         }
 
         /*
@@ -303,8 +304,8 @@ public class JalangiAnalysis {
          */
         if (this.callbacks.containsKey("evalPre") || this.callbacks.containsKey("evalPost")) {
             this.instrument.onCallback(
-                            ProfiledTagEnum.EVAL,
-                            new EvalFactory(this.jsAnalysis, callbacks.get("evalPre"), callbacks.get("evalPost"), false));
+                    ProfiledTagEnum.EVAL,
+                    new EvalFactory(this.jsAnalysis, callbacks.get("evalPre"), callbacks.get("evalPost"), false));
         }
 
         /*
@@ -313,14 +314,14 @@ public class JalangiAnalysis {
          */
         if (this.callbacks.containsKey("evalFunctionPre") || this.callbacks.containsKey("evalFunctionPost")) {
             this.instrument.onCallback(
-                            ProfiledTagEnum.BUILTIN,
-                            new EvalFunctionFactory(this.jsAnalysis, callbacks.get("evalFunctionPre"), callbacks.get("evalFunctionPost")));
+                    ProfiledTagEnum.BUILTIN,
+                    new EvalFunctionFactory(this.jsAnalysis, callbacks.get("evalFunctionPre"), callbacks.get("evalFunctionPost")));
         }
 
         if (this.callbacks.containsKey("forObject")) {
             this.instrument.onCallback(
-                            ProfiledTagEnum.CF_ROOT,
-                            new ForObjectFactory(this.jsAnalysis, callbacks.get("forObject")));
+                    ProfiledTagEnum.CF_ROOT,
+                    new ForObjectFactory(this.jsAnalysis, callbacks.get("forObject")));
         }
 
         /*
@@ -328,16 +329,16 @@ public class JalangiAnalysis {
          */
         if (this.callbacks.containsKey("asyncFunctionEnter") || this.callbacks.containsKey("asyncFunctionExit")) {
             this.instrument.onCallback(
-                            ProfiledTagEnum.CF_ROOT,
-                            new AsyncRootFactory(this.jsAnalysis, callbacks.get("asyncFunctionEnter"), callbacks.get("asyncFunctionExit")));
+                    ProfiledTagEnum.CF_ROOT,
+                    new AsyncRootFactory(this.jsAnalysis, callbacks.get("asyncFunctionEnter"), callbacks.get("asyncFunctionExit")));
         }
         /*
          * await callback
          */
         if (this.callbacks.containsKey("awaitPre") || this.callbacks.containsKey("awaitPost")) {
             this.instrument.onCallback(
-                            ProfiledTagEnum.CF_BRANCH,
-                            new AwaitFactory(this.jsAnalysis, callbacks.get("awaitPre"), callbacks.get("awaitPost")));
+                    ProfiledTagEnum.CF_BRANCH,
+                    new AwaitFactory(this.jsAnalysis, callbacks.get("awaitPre"), callbacks.get("awaitPost")));
         }
 
         /*
@@ -347,8 +348,8 @@ public class JalangiAnalysis {
          */
         if (this.callbacks.containsKey("loopEnter") || this.callbacks.containsKey("loopExit")) {
             this.instrument.onCallback(
-                            ProfiledTagEnum.CF_ROOT,
-                            new LoopFactory(this.jsAnalysis, callbacks.get("loopEnter"), callbacks.get("loopExit")));
+                    ProfiledTagEnum.CF_ROOT,
+                    new LoopFactory(this.jsAnalysis, callbacks.get("loopEnter"), callbacks.get("loopExit")));
         }
 
         /*
@@ -356,8 +357,8 @@ public class JalangiAnalysis {
          */
         if (this.callbacks.containsKey("_return")) {
             this.instrument.onCallback(
-                            ProfiledTagEnum.CF_BRANCH,
-                            new ReturnFactory(this.jsAnalysis, callbacks.get("_return")));
+                    ProfiledTagEnum.CF_BRANCH,
+                    new ReturnFactory(this.jsAnalysis, callbacks.get("_return")));
         }
 
         /*
@@ -366,8 +367,8 @@ public class JalangiAnalysis {
          * its first execution.
          */
         this.instrument.onCallback(
-                        ProfiledTagEnum.ROOT,
-                        new InitialRootFactory(this.jsAnalysis, callbacks.get("newSource")));
+                ProfiledTagEnum.ROOT,
+                new InitialRootFactory(this.jsAnalysis, callbacks.get("newSource")));
     }
 
     /**

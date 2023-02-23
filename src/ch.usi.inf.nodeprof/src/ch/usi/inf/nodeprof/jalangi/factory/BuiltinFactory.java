@@ -52,13 +52,15 @@ public class BuiltinFactory extends AbstractFactory {
             }
 
             @Override
-            public void executePost(VirtualFrame frame, Object result,
+            public Object executePost(VirtualFrame frame, Object result,
                             Object[] inputs) throws InteropException {
                 if (isTarget && post != null) {
-                    cbNode.postCall(this, jalangiAnalysis, post, this.getBuiltinName(), getFunction(frame), getReceiver(frame), makeArgs.executeArguments(getArguments(frame)),
+                    return cbNode.postCall(this, jalangiAnalysis, post, this.getBuiltinName(), getFunction(frame), getReceiver(frame), makeArgs.executeArguments(getArguments(frame)),
                                     convertResult(result),
                                     createWrappedException(null));
                 }
+
+                return null;
             }
 
             @Override

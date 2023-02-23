@@ -47,13 +47,15 @@ public class GetFieldFactory extends AbstractFactory {
             }
 
             @Override
-            public void executePost(VirtualFrame frame, Object result,
+            public Object executePost(VirtualFrame frame, Object result,
                             Object[] inputs) throws InteropException {
                 if (post != null) {
                     if (!this.isGlobal(inputs)) {
-                        cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), convertResult(result), false, isOpAssign(), isMethodCall());
+                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), convertResult(result), false, isOpAssign(), isMethodCall());
                     }
                 }
+
+                return null;
             }
         };
     }
