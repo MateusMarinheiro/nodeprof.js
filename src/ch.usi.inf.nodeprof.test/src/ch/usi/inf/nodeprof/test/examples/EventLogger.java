@@ -86,12 +86,13 @@ public final class EventLogger extends TestableNodeProfAnalysis {
                         });
 
                         @Override
-                        public void executePost(VirtualFrame frame, Object result, Object[] inputs) {
+                        public Object executePost(VirtualFrame frame, Object result, Object[] inputs) {
                             addDebugEvent("POST", getSourceIID(), tag);
                             if (!InputChecker.checkInput(tag, this, inputs)) {
                                 EventReport report = (EventReport) reportNode.execute(getSourceIID());
                                 report.addError(tag, context.getInstrumentedNode().getClass(), inputs);
                             }
+                            return null;
                         }
 
                     };

@@ -105,11 +105,18 @@ public class MultiEventHandler extends BaseSingleTagEventHandler {
 
     @Override
     @ExplodeLoop
-    public void executePost(VirtualFrame frame, Object result, Object[] inputs) throws Exception {
+    public Object executePost(VirtualFrame frame, Object result, Object[] inputs) throws Exception {
         for (BaseEventHandlerNode handler : handlers) {
-            handler.executePost(frame, result, inputs);
+            Object res = handler.executePost(frame, result, inputs);
+            // If any handler wants to overwrite the return value, ignore the rest
+            // ToDo - test and validate
+            if (res != null) {
+                return res;
+            }
             noChildHandlerUpdate = noChildHandlerUpdate && (handler.wantsToUpdateHandler() == handler);
         }
+
+        return null;
     }
 
     @ExplodeLoop

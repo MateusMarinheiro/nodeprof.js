@@ -60,12 +60,12 @@ public class DeclareFactory extends AbstractFactory {
             }
 
             @Override
-            public void executePost(VirtualFrame frame, Object result,
+            public Object executePost(VirtualFrame frame, Object result,
                             Object[] inputs) throws InteropException {
                 if (post != null) {
                     checkForSymbolicLocation(context.getInstrumentedNode(), frame.getArguments());
 
-                    cbNode.postCall(
+                    return cbNode.postCall(
                                     this,
                                     jalangiAnalysis,
                                     post,
@@ -74,6 +74,8 @@ public class DeclareFactory extends AbstractFactory {
                                     getDeclareType(),
                                     isFunctionDeclaration() ? FUNC_DECL_STR : Undefined.instance);
                 }
+
+                return null;
             }
 
         };

@@ -44,11 +44,13 @@ public class GetElementFactory extends AbstractFactory {
             }
 
             @Override
-            public void executePost(VirtualFrame frame, Object result,
+            public Object executePost(VirtualFrame frame, Object result,
                             Object[] inputs) throws InteropException {
                 if (post != null) {
-                    cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(inputs), convertResult(result), true, isOpAssign(), isMethodCall());
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(inputs), convertResult(result), true, isOpAssign(), isMethodCall());
                 }
+
+                return null;
             }
         };
     }

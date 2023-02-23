@@ -28,9 +28,9 @@ import ch.usi.inf.nodeprof.handlers.FunctionCallEventHandler;
 public class InvokeFactory extends AbstractFactory {
     private final ProfiledTagEnum tag; // can be INVOKE or NEW
 
-    public InvokeFactory(Object jalangiAnalysis, ProfiledTagEnum tag, JSDynamicObject pre,
-                         JSDynamicObject post) {
-        super("invokeFun", jalangiAnalysis, pre, post);
+    public InvokeFactory(Object jalangiAnalysis, ProfiledTagEnum tag, DynamicObject pre,
+                    DynamicObject post, DynamicObject onInput) {
+        super("invokeFun", jalangiAnalysis, pre, post, onInput);
         this.tag = tag;
     }
 
@@ -50,13 +50,22 @@ public class InvokeFactory extends AbstractFactory {
             }
 
             @Override
-            public void executePost(VirtualFrame frame, Object result,
+            public Object executePost(VirtualFrame frame, Object result,
                             Object[] inputs) throws InteropException {
                 if (post != null) {
                     // TODO Jalangi's function iid/sid are set to be 0/0
-                    cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getFunction(inputs), getReceiver(inputs), makeArgs.executeArguments(inputs), convertResult(result), isNew(),
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getFunction(inputs), getReceiver(inputs), makeArgs.executeArguments(inputs), convertResult(result), isNew(),
                                     isInvoke(), 0, 0);
                 }
+                return null;
+            }
+
+            @Override
+            public void executeOnInput(VirtualFrame frame, int inputIndex, Object input) throws InteropException {
+                // only call input call when the function is read
+                if (onInput == null || inputIndex != getOffSet() - 1) return;
+
+                cbNode.onInputCall(this, jalangiAnalysis, onInput, getSourceIID(), inputIndex, input);
             }
         };
     }

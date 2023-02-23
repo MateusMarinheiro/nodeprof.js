@@ -49,12 +49,13 @@ public class EvalFunctionFactory extends AbstractFactory {
             }
 
             @Override
-            public void executePost(VirtualFrame frame, Object result,
+            public Object executePost(VirtualFrame frame, Object result,
                             Object[] inputs) throws InteropException {
                 if (isTarget && post != null) {
-                    cbNode.postCall(this, jalangiAnalysis, post, makeArgs.executeArguments(getArguments(frame)), convertResult(result), createWrappedException(null));
-
+                    return cbNode.postCall(this, jalangiAnalysis, post, makeArgs.executeArguments(getArguments(frame)), convertResult(result), createWrappedException(null));
                 }
+
+                return null;
             }
 
             @Override

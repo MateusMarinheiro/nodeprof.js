@@ -69,7 +69,7 @@ public class CountObjectAllocation extends TestableNodeProfAnalysis {
                     @Child ReportEntryNode getReport = ReportEntryNodeGen.create(db, new SimpleCounterReport.SimleReportFactory());
 
                     @Override
-                    public void executePost(VirtualFrame frame, Object result,
+                    public Object executePost(VirtualFrame frame, Object result,
                                     Object[] inputs) {
                         if (this.isNew()) {
                             SimpleCounterReport report = (SimpleCounterReport) (getReport.execute(this.getSourceIID()));
@@ -83,6 +83,8 @@ public class CountObjectAllocation extends TestableNodeProfAnalysis {
                                 report.incre();
                             }
                         }
+
+                        return null;
                     }
                 };
             }
@@ -100,13 +102,14 @@ public class CountObjectAllocation extends TestableNodeProfAnalysis {
                     @Child ReportEntryNode getReport = ReportEntryNodeGen.create(db, new SimpleCounterReport.SimleReportFactory());
 
                     @Override
-                    public void executePost(VirtualFrame frame, Object result,
+                    public Object executePost(VirtualFrame frame, Object result,
                                     Object[] inputs) {
                         if (this.getLiteralType().equals("ArrayLiteral") || this.getLiteralType().equals("ObjectLiteral")) {
                             addDebugEvent("OBJ-LIT", getSourceIID(), ProfiledTagEnum.LITERAL);
                             SimpleCounterReport report = (SimpleCounterReport) (getReport.execute(this.getSourceIID()));
                             report.incre();
                         }
+                        return null;
                     }
                 };
             }

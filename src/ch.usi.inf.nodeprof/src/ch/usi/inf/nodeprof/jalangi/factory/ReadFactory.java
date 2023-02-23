@@ -18,8 +18,12 @@ package ch.usi.inf.nodeprof.jalangi.factory;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
+import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
+import com.oracle.truffle.api.instrumentation.InstrumentableNode;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
 
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.PropertyReadEventHandler;
@@ -39,27 +43,31 @@ public class ReadFactory extends AbstractFactory {
     public BaseEventHandlerNode create(EventContext context) {
         if (!isProperty) {
             return new VarReadEventHandler(context) {
-                @Child CallbackNode cbNode = new CallbackNode();
+                @Child
+                CallbackNode cbNode = new CallbackNode();
 
                 @Override
-                public void executePost(VirtualFrame frame, Object result,
-                                Object[] inputs) throws InteropException {
+                public Object executePost(VirtualFrame frame, Object result,
+                                          Object[] inputs) throws InteropException {
                     if (post != null) {
                         // TODO, isScriptLocal is set true here
-                        cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getName(), convertResult(result), false, true);
+                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getName(), convertResult(result), false, true);
                     }
+                    return null;
                 }
             };
         } else {
             return new PropertyReadEventHandler(context) {
-                @Child CallbackNode cbNode = new CallbackNode();
+                @Child
+                CallbackNode cbNode = new CallbackNode();
 
                 @Override
-                public void executePost(VirtualFrame frame, Object result,
-                                Object[] inputs) throws InteropException {
+                public Object executePost(VirtualFrame frame, Object result,
+                                          Object[] inputs) throws InteropException {
                     if (post != null && this.isGlobal(inputs)) {
-                        cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getProperty(), convertResult(result), true, true);
+                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getProperty(), convertResult(result), true, true);
                     }
+                    return null;
                 }
 
             };
