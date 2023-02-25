@@ -26,11 +26,15 @@ import com.oracle.truffle.api.object.DynamicObject;
 import ch.usi.inf.nodeprof.ProfiledTagEnum;
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.FunctionCallEventHandler;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
 import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
 
+import java.net.URI;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class InvokeFactory extends AbstractFactory {
     private final ProfiledTagEnum tag; // can be INVOKE or NEW
@@ -77,22 +81,32 @@ public class InvokeFactory extends AbstractFactory {
             public Object executeOnInput(VirtualFrame frame, int inputIndex, Object input) throws InteropException {
                 // only call input call when the function is read
                 if (onInput == null || inputIndex != getOffSet() - 1) return null;
-//
-//                if (inputIndex == getOffSet() - 1) {
-//                    this.function = input;
-//                    return null;
-//                }
 
-                return cbNode.onInputCall(this, jalangiAnalysis, onInput, getSourceIID(), input, isInternal(input), inputIndex);
-//                return cbNode.onInputCall(this, jalangiAnalysis, onInput, getSourceIID(), this.function, isInternal(this.function), input, inputIndex);
+                Source src = ((JSFunctionObject) input).getSourceLocation().getSource();
+                boolean isBuiltin = src.isInternal();
+
+                // get node module from src uri
+                String nodeModule = null;
+                if (!isBuiltin) {
+                    String[] uriParts = src.getURI().toString().split("/");
+                    nodeModule = uriParts.length > 1 && uriParts[1].startsWith("node:") ? uriParts[1].split(":")[1] : null;
+                }
+
+                return cbNode.onInputCall(
+                        this,
+                        jalangiAnalysis,
+                        onInput,
+                        getSourceIID(),
+                        input,
+                        nodeModule != null ? Strings.fromJavaString(nodeModule) : Undefined.instance,
+                        isBuiltin,
+                        inputIndex
+                );
             }
 
             @Override
             public Object executeExceptional(VirtualFrame frame, Throwable exception, Object[] inputs) throws InteropException {
                 if (onException == null) return null;
-
-//                System.out.println(exception.getMessage());
-//                System.out.println(Arrays.toString(inputs));
 
                 Object function = inputs.length >= this.getOffSet() - 1 ? inputs[this.getOffSet() - 1] : null;
                 return cbNode.onExceptionCall(this, jalangiAnalysis, onException, getSourceIID(), exception, function != null ? function : Undefined.instance);
