@@ -40,19 +40,17 @@ public class BinaryFactory extends AbstractFactory {
 
             @Override
             public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
-                if (pre != null && !isLogic()) {
-                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getOp(), getLeft(inputs), getRight(inputs));
-                }
-                return null;
+                return pre != null
+                        ? cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getOp(), getLeft(inputs), getRight(inputs), isLogic())
+                        : null;
             }
 
             @Override
             public Object executePost(VirtualFrame frame, Object result,
-                                    Object[] inputs) throws InteropException {
-                if (post != null && !isLogic()) {
-                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getOp(), getLeft(inputs), getRight(inputs), convertResult(result));
-                }
-                return null;
+                                      Object[] inputs) throws InteropException {
+                return post != null
+                        ? cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getOp(), getLeft(inputs), getRight(inputs), convertResult(result), isLogic())
+                        : null;
             }
         };
     }

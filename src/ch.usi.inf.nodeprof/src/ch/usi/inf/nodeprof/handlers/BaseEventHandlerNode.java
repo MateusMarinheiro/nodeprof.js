@@ -125,8 +125,8 @@ public abstract class BaseEventHandlerNode extends Node {
         return null;
     }
 
-    public void executeExceptional(@SuppressWarnings("unused") VirtualFrame frame, @SuppressWarnings("unused") Throwable exception) throws Exception {
-
+    public Object executeExceptional(VirtualFrame frame, Throwable exception, Object[] inputs) throws Exception {
+        return null;
     }
 
     /**
@@ -134,8 +134,8 @@ public abstract class BaseEventHandlerNode extends Node {
      *
      * @throws Exception
      */
-    public void executeExceptionalCtrlFlow(VirtualFrame frame, Throwable exception, @SuppressWarnings("unused") Object[] inputs) throws Exception {
-        executeExceptional(frame, exception);
+    public void executeExceptionalCtrlFlow(VirtualFrame frame, Throwable exception, Object[] inputs) throws Exception {
+        executeExceptional(frame, exception, inputs);
     }
 
     public TruffleString getAttributeTString(String key) {

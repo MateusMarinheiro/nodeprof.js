@@ -60,11 +60,11 @@ public class EvalFunctionFactory extends AbstractFactory {
             }
 
             @Override
-            public void executeExceptional(VirtualFrame frame, Throwable exception) throws InteropException {
+            public Object executeExceptional(VirtualFrame frame, Throwable exception, Object[] inputs) throws InteropException {
                 if (isTarget && post != null) {
                     cbNode.postCall(this, jalangiAnalysis, post, makeArgs.executeArguments(getArguments(frame)), Undefined.instance, createWrappedException(exception));
-
                 }
+                return null;
             }
         };
     }

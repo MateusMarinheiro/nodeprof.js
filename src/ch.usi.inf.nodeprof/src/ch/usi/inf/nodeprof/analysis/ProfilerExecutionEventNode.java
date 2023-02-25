@@ -245,20 +245,27 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
             return;
         }
 
-        Object[] inputs = null;
+        Object[] inputs = child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null;
+        Object newResult = null;
         try {
             if (hasOnEnter > 0) {
                 hasOnEnter--;
                 this.cb.exceptionHitCount++;
                 if (exception instanceof ControlFlowException) {
-                    inputs = child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null;
+                    // ToDo - look into this
                     this.child.executeExceptionalCtrlFlow(frame, exception, inputs);
                 } else {
-                    this.child.executeExceptional(frame, exception);
+                    newResult = this.child.executeExceptional(frame, exception, inputs);
                 }
             }
         } catch (Throwable e) {
             reportError(inputs, e);
+        }
+
+        if (newResult != null) {
+            returnInput = newResult;
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw context.createUnwind(newResult);
         }
     }
 

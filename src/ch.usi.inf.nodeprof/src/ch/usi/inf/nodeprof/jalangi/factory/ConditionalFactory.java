@@ -26,45 +26,25 @@ import ch.usi.inf.nodeprof.handlers.BinaryEventHandler;
 import ch.usi.inf.nodeprof.handlers.ConditionalEventHandler;
 
 public class ConditionalFactory extends AbstractFactory {
-    private final boolean isBinary;
 
-    public ConditionalFactory(Object jalangiAnalysis, DynamicObject post,
-                    boolean isBinary) {
+    public ConditionalFactory(Object jalangiAnalysis, DynamicObject post) {
         super("conditional", jalangiAnalysis, null, post);
-        this.isBinary = isBinary;
     }
 
     @Override
     public BaseEventHandlerNode create(EventContext context) {
-        if (!isBinary) {
-            return new ConditionalEventHandler(context) {
-                @Child CallbackNode cbNode = new CallbackNode();
+        return new ConditionalEventHandler(context) {
+            @Child
+            CallbackNode cbNode = new CallbackNode();
 
-                @Override
-                public Object executePost(VirtualFrame frame, Object result,
-                                Object[] inputs) throws InteropException {
-                    if (post != null && isConditional()) {
-                        System.out.println("Conditional");
-                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result));
-                    }
-                    return null;
-                }
-            };
-        } else {
-            return new BinaryEventHandler(context) {
-                @Child CallbackNode cbNode = new CallbackNode();
-
-                @Override
-                public Object executePost(VirtualFrame frame, Object result,
-                                Object[] inputs) throws InteropException {
-                    if (post != null && this.isLogic()) {
-                        System.out.println("Binary Logic");
-                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result));
-                    }
-                    return null;
-                }
-            };
-        }
+            @Override
+            public Object executePost(VirtualFrame frame, Object result,
+                                      Object[] inputs) throws InteropException {
+                return post != null
+                        ? cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result))
+                        : null;
+            }
+        };
     }
 
 }

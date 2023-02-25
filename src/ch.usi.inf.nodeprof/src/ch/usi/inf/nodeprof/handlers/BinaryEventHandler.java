@@ -89,9 +89,6 @@ public abstract class BinaryEventHandler extends BaseSingleTagEventHandler {
      */
     @Override
     public int expectedNumInputs() {
-        if (isLogic()) {
-            return 0;
-        }
         return 2;
     }
 }

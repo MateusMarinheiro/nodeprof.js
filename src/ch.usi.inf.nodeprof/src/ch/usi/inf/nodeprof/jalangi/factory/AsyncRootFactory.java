@@ -57,10 +57,11 @@ public class AsyncRootFactory extends AbstractFactory {
             }
 
             @Override
-            public void executeExceptional(VirtualFrame frame, Throwable exception) throws InteropException {
+            public Object executeExceptional(VirtualFrame frame, Throwable exception, Object[] inputs) throws InteropException {
                 if (post != null) {
                     cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), Undefined.instance, createWrappedException(exception));
                 }
+                return null;
             }
 
             @Override

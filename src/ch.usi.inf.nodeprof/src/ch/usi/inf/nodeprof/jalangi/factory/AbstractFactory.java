@@ -16,10 +16,13 @@
  * *****************************************************************************/
 package ch.usi.inf.nodeprof.jalangi.factory;
 
+import ch.usi.inf.nodeprof.analysis.AnalysisFactory;
+import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
+import ch.usi.inf.nodeprof.utils.GlobalObjectCache;
+import ch.usi.inf.nodeprof.utils.Logger;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -29,8 +32,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.js.nodes.control.YieldException;
 import com.oracle.truffle.js.runtime.GraalJSException;
-import com.oracle.truffle.js.runtime.JSInterruptedExecutionException;
 import com.oracle.truffle.js.runtime.JSContext;
+import com.oracle.truffle.js.runtime.JSInterruptedExecutionException;
 import com.oracle.truffle.js.runtime.JSRealm;
 import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.builtins.JSAbstractArray;
@@ -41,11 +44,6 @@ import com.oracle.truffle.js.runtime.objects.JSObject;
 import com.oracle.truffle.js.runtime.objects.Null;
 import com.oracle.truffle.js.runtime.objects.Undefined;
 
-import ch.usi.inf.nodeprof.analysis.AnalysisFactory;
-import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
-import ch.usi.inf.nodeprof.utils.GlobalObjectCache;
-import ch.usi.inf.nodeprof.utils.Logger;
-
 // a factory corresponds to a callback defined in Jalangi-like analysis
 public abstract class AbstractFactory implements
         AnalysisFactory<BaseEventHandlerNode> {
@@ -55,6 +53,7 @@ public abstract class AbstractFactory implements
     protected final DynamicObject pre;
     protected final DynamicObject post;
     protected final DynamicObject onInput;
+    protected final DynamicObject onException;
 
     protected final String jalangiCallback;
 
@@ -113,17 +112,18 @@ public abstract class AbstractFactory implements
     }
 
     public AbstractFactory(String jalangiCallback, Object jalangiAnalysis, DynamicObject pre,
-                           DynamicObject post, DynamicObject onInput) {
+                           DynamicObject post, DynamicObject onInput, DynamicObject onException) {
         this.jalangiCallback = jalangiCallback;
         this.jalangiAnalysis = jalangiAnalysis;
         this.pre = pre;
         this.post = post;
         this.onInput = onInput;
+        this.onException = onException;
     }
 
     public AbstractFactory(String jalangiCallback, Object jalangiAnalysis, DynamicObject pre,
                            DynamicObject post) {
-        this(jalangiCallback, jalangiAnalysis, pre, post, null);
+        this(jalangiCallback, jalangiAnalysis, pre, post, null, null);
     }
 
     /**
@@ -196,6 +196,9 @@ public abstract class AbstractFactory implements
         @Node.Child
         DirectCallNode onInputCall = onInput != null ? Truffle.getRuntime().createDirectCallNode(JSFunction.getCallTarget(onInput)) : null;
 
+        @Node.Child
+        DirectCallNode onExceptionCall = onException != null ? Truffle.getRuntime().createDirectCallNode(JSFunction.getCallTarget(onException)) : null;
+
         @Child
         private InteropLibrary interopLibrary = InteropLibrary.getFactory().createDispatched(3);
 
@@ -266,6 +269,22 @@ public abstract class AbstractFactory implements
 
             try {
                 Object ret = onInputCall.call(args);
+                checkDeactivate(ret, handler);
+                return readReturnMember(ret, "result");
+            } catch (JSInterruptedExecutionException e) {
+                Logger.error("execution cancelled probably due to timeout");
+                return null;
+            } finally {
+                afterCall();
+            }
+        }
+
+        public Object onExceptionCall(BaseEventHandlerNode handler, Object... args) {
+            assertNoStringLeak(args);
+            if (onException == null || !beforeCall()) return null;
+
+            try {
+                Object ret = onExceptionCall.call(args);
                 checkDeactivate(ret, handler);
                 return readReturnMember(ret, "result");
             } catch (JSInterruptedExecutionException e) {
