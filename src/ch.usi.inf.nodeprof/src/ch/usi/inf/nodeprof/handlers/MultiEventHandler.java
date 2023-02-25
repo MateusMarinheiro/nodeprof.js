@@ -31,11 +31,12 @@ import ch.usi.inf.nodeprof.ProfiledTagEnum;
 
 public class MultiEventHandler extends BaseSingleTagEventHandler {
 
-    @Children final BaseEventHandlerNode[] handlers;
-    @CompilationFinal boolean noChildHandlerUpdate = true;
+    @Children
+    final BaseEventHandlerNode[] handlers;
+    @CompilationFinal
+    boolean noChildHandlerUpdate = true;
 
     /**
-     *
      * @param handlers should be of the same kind T
      */
     protected MultiEventHandler(ProfiledTagEnum tag, BaseEventHandlerNode[] handlers) {
@@ -56,7 +57,7 @@ public class MultiEventHandler extends BaseSingleTagEventHandler {
     public Object executePre(VirtualFrame frame, Object[] inputs) throws Exception {
         for (BaseEventHandlerNode handler : handlers) {
             Object result = handler.executePre(frame, inputs);
-            if (result != null){
+            if (result != null) {
                 return result;
             }
             noChildHandlerUpdate = noChildHandlerUpdate && (handler.wantsToUpdateHandler() == handler);
@@ -125,10 +126,14 @@ public class MultiEventHandler extends BaseSingleTagEventHandler {
 
     @ExplodeLoop
     @Override
-    public void executeExceptional(VirtualFrame frame, Throwable exception) throws Exception {
+    public Object executeExceptional(VirtualFrame frame, Throwable exception, Object[] inputs) throws Exception {
         for (BaseEventHandlerNode handler : handlers) {
-            handler.executeExceptional(frame, exception);
+            Object res = handler.executeExceptional(frame, exception, inputs);
+            if (res != null) {
+                return res;
+            }
         }
+        return null;
     }
 
     @Override

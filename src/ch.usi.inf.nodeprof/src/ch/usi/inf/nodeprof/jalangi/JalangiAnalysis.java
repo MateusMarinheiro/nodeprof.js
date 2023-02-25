@@ -107,6 +107,7 @@ public class JalangiAnalysis {
             put("invokeFunStart", EnumSet.of(INVOKE, NEW));
             put("invokeFunPre", EnumSet.of(INVOKE, NEW));
             put("invokeFun", EnumSet.of(INVOKE, NEW));
+            put("invokeFunException", EnumSet.of(INVOKE, NEW));
 
             // builtin calls
             put("builtinEnter", EnumSet.of(BUILTIN));
@@ -187,11 +188,11 @@ public class JalangiAnalysis {
             Logger.debug("analysis is ready " + callbacks.keySet());
         }
         if (this.callbacks.containsKey("invokeFunPre") || callbacks.containsKey("invokeFun") || callbacks.containsKey("invokeFunStart")) {
-            InvokeFactory invokeFactory = new InvokeFactory(this.jsAnalysis, ProfiledTagEnum.INVOKE, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"), callbacks.get("invokeFunStart"));
+            InvokeFactory invokeFactory = new InvokeFactory(this.jsAnalysis, ProfiledTagEnum.INVOKE, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"), callbacks.get("invokeFunStart"), callbacks.get("invokeFunException"));
             this.instrument.onCallback(
                     ProfiledTagEnum.INVOKE,
                     invokeFactory);
-            InvokeFactory newFactory = new InvokeFactory(this.jsAnalysis, ProfiledTagEnum.NEW, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"), callbacks.get("invokeFunStart"));
+            InvokeFactory newFactory = new InvokeFactory(this.jsAnalysis, ProfiledTagEnum.NEW, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"), callbacks.get("invokeFunStart"), callbacks.get("invokeFunException"));
             this.instrument.onCallback(
                     ProfiledTagEnum.NEW,
                     newFactory);
@@ -259,10 +260,7 @@ public class JalangiAnalysis {
         if (this.callbacks.containsKey("conditional")) {
             this.instrument.onCallback(
                     ProfiledTagEnum.CF_BRANCH,
-                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), false));
-            this.instrument.onCallback(
-                    ProfiledTagEnum.BINARY,
-                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
+                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional")));
         }
 
         /*

@@ -28,13 +28,16 @@ import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.FunctionCallEventHandler;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
 import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
+import com.oracle.truffle.js.runtime.objects.Undefined;
+
+import java.util.Arrays;
 
 public class InvokeFactory extends AbstractFactory {
     private final ProfiledTagEnum tag; // can be INVOKE or NEW
 
     public InvokeFactory(Object jalangiAnalysis, ProfiledTagEnum tag, DynamicObject pre,
-                         DynamicObject post, DynamicObject onInput) {
-        super("invokeFun", jalangiAnalysis, pre, post, onInput);
+                         DynamicObject post, DynamicObject onInput, DynamicObject onException) {
+        super("invokeFun", jalangiAnalysis, pre, post, onInput, onException);
         this.tag = tag;
     }
 
@@ -82,6 +85,17 @@ public class InvokeFactory extends AbstractFactory {
 
                 return cbNode.onInputCall(this, jalangiAnalysis, onInput, getSourceIID(), input, isInternal(input), inputIndex);
 //                return cbNode.onInputCall(this, jalangiAnalysis, onInput, getSourceIID(), this.function, isInternal(this.function), input, inputIndex);
+            }
+
+            @Override
+            public Object executeExceptional(VirtualFrame frame, Throwable exception, Object[] inputs) throws InteropException {
+                if (onException == null) return null;
+
+//                System.out.println(exception.getMessage());
+//                System.out.println(Arrays.toString(inputs));
+
+                Object function = inputs.length >= this.getOffSet() - 1 ? inputs[this.getOffSet() - 1] : null;
+                return cbNode.onExceptionCall(this, jalangiAnalysis, onException, getSourceIID(), exception, function != null ? function : Undefined.instance);
             }
         };
     }

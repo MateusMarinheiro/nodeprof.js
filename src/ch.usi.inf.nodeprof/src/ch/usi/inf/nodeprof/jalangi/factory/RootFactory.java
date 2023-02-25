@@ -70,14 +70,15 @@ public class RootFactory extends AbstractFactory {
             }
 
             @Override
-            public void executeExceptional(VirtualFrame frame, Throwable exception) throws InteropException {
+            public Object executeExceptional(VirtualFrame frame, Throwable exception, Object[] inputs) throws InteropException {
                 if (isRegularExpression()) {
-                    return;
+                    return null;
                 }
 
                 if (!this.isBuiltin && post != null) {
                     cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), Undefined.instance, createWrappedException(exception));
                 }
+                return null;
             }
 
             @Override
@@ -98,11 +99,11 @@ public class RootFactory extends AbstractFactory {
                     }
                     return;
                 } else if (exception instanceof YieldException) {
-                    executeExceptional(frame, exception);
+                    executeExceptional(frame, exception, inputs);
                     return;
                 } else {
                     Logger.error(this.getSourceIID(), "Unexpected control flow exception", exception.getClass());
-                    executeExceptional(frame, exception);
+                    executeExceptional(frame, exception, inputs);
                 }
             }
 
