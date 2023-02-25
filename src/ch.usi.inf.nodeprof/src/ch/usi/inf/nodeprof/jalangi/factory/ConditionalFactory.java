@@ -44,6 +44,7 @@ public class ConditionalFactory extends AbstractFactory {
                 public Object executePost(VirtualFrame frame, Object result,
                                 Object[] inputs) throws InteropException {
                     if (post != null && isConditional()) {
+                        System.out.println("Conditional");
                         return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result));
                     }
                     return null;
@@ -57,6 +58,7 @@ public class ConditionalFactory extends AbstractFactory {
                 public Object executePost(VirtualFrame frame, Object result,
                                 Object[] inputs) throws InteropException {
                     if (post != null && this.isLogic()) {
+                        System.out.println("Binary Logic");
                         return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result));
                     }
                     return null;

@@ -73,14 +73,15 @@ public class InvokeFactory extends AbstractFactory {
             @Override
             public Object executeOnInput(VirtualFrame frame, int inputIndex, Object input) throws InteropException {
                 // only call input call when the function is read
-                if (onInput == null || inputIndex < getOffSet() - 1) return null;
+                if (onInput == null || inputIndex != getOffSet() - 1) return null;
+//
+//                if (inputIndex == getOffSet() - 1) {
+//                    this.function = input;
+//                    return null;
+//                }
 
-                if (inputIndex == getOffSet() - 1) {
-                    this.function = input;
-                    return null;
-                }
-
-                return cbNode.onInputCall(this, jalangiAnalysis, onInput, getSourceIID(), this.function, isInternal(this.function), input, inputIndex);
+                return cbNode.onInputCall(this, jalangiAnalysis, onInput, getSourceIID(), input, isInternal(input), inputIndex);
+//                return cbNode.onInputCall(this, jalangiAnalysis, onInput, getSourceIID(), this.function, isInternal(this.function), input, inputIndex);
             }
         };
     }
