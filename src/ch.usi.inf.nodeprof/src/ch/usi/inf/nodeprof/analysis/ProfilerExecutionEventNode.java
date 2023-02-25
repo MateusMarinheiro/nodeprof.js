@@ -29,11 +29,28 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
 import com.oracle.truffle.api.nodes.ControlFlowException;
+import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.js.runtime.GraalJSException;
+import com.oracle.truffle.js.runtime.Strings;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 public class ProfilerExecutionEventNode extends ExecutionEventNode {
     protected final EventContext context;
     protected final ProfiledTagEnum cb;
+
+    /**
+     * Store the changed input when a callback returns a new result
+     * It is set when onResult returns another result and is unset onUnwind
+     * <p>
+     * This is used to overwrite the input with the changed value in the parent nodes onInputValue
+     * The reason for this is that unwind works for the actual program, but if it is an input for
+     * another operation then onInputValue is called before onUnwind which leads to the instrumentation not receiving the right value
+     * e.g. 1 + 2 + 3 - where 1 is replaced with 5 by the callback - returns 10, but the onInputValue of the second '+' operations still gets 3 and 3 as inputs
+     * </p>
+     */
+    protected static Object returnInput = null;
     @Child
     BaseEventHandlerNode child;
     int hasOnEnter = 0;
@@ -81,14 +98,17 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         }
 
         Object newResult = null;
+        Object input = returnInput != null ? returnInput : inputValue;
+
         if (child.expectedNumInputs() < 0 || inputIndex < child.expectedNumInputs()) {
             // save input only necessary
-            saveInputValue(frame, inputIndex, inputValue);
+            saveInputValue(frame, inputIndex, input);
 
-            System.out.println("Input " + this.child);
+//            System.out.println("Input " + input + " " + frame);
+//            System.out.println("Saved Inputs " + Arrays.toString(getSavedInputValues(frame)));
 
             try {
-                /*newResult = */this.child.executeOnInput(frame, inputIndex, inputValue);
+                this.child.executeOnInput(frame, inputIndex, input);
             } catch (Throwable e) {
                 reportError(null, e);
             }
@@ -100,8 +120,8 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
             try {
                 // this does not work as expected -> it just replaces the last input
                 /*newResult = */
-                newResult = this.child.executePre(frame, child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null);
-                System.out.println("Pre " + this.child + " " + newResult);
+                this.child.executePre(frame, child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null);
+//                System.out.println("Pre " + this.child + " " + newResult);
                 // allow for handler changes after executePre/Post
                 checkHandlerChanges();
             } catch (Throwable e) {
@@ -109,10 +129,10 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
             }
         }
 
-        if (newResult != null) {
-            CompilerDirectives.transferToInterpreter();
-            throw context.createUnwind(newResult);
-        }
+//        if (newResult != null) {
+//            CompilerDirectives.transferToInterpreter();
+//            throw context.createUnwind(newResult);
+//        }
     }
 
     @Override
@@ -121,15 +141,22 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
             return;
         }
 
+//        System.out.println("Enter " + frame);
+
+//        if (this.child instanceof BinaryEventHandler && ((BinaryEventHandler) this.child).getOp().toString().equals("+")) {
+//            CompilerDirectives.transferToInterpreter();
+//            throw context.createUnwind(Strings.fromJavaString("enter"));
+//        }
+
         hasOnEnter++;
-        Object newResult = null;
+//        Object newResult = null;
         try {
             this.child.enter(frame);
 
             if (this.child.isLastIndex(getInputCount(), -1)) {
                 this.cb.preHitCount++;
 
-                newResult = this.child.executePre(frame, null);
+                this.child.executePre(frame, null);
 
                 // allow for handler changes after executePre/Post
                 checkHandlerChanges();
@@ -137,10 +164,10 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         } catch (Throwable e) {
             reportError(null, e);
         }
-        if (newResult != null) {
-            CompilerDirectives.transferToInterpreter();
-            throw context.createUnwind(newResult);
-        }
+//        if (newResult != null) {
+//            CompilerDirectives.transferToInterpreter();
+//            throw context.createUnwind(newResult);
+//        }
     }
 
 
@@ -161,6 +188,8 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
                 inputs = child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null;
                 newResult = this.child.executePost(frame, result, inputs);
 
+//                System.out.println("Return: " + frame);
+
                 // allow for handler changes after executePre/Post
                 checkHandlerChanges();
             }
@@ -169,7 +198,8 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         }
 
         if (newResult != null) {
-            CompilerDirectives.transferToInterpreter();
+            returnInput = newResult;
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw context.createUnwind(newResult);
         }
     }
@@ -179,6 +209,8 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
 //        hasOnEnter = 0;
 //        System.out.println("Unwind: " + info);
         // ToDo - some debug output?
+        returnInput = null;
+//        System.out.println("Unwind Node: " + frame);
         return info;
     }
 

@@ -48,7 +48,9 @@ public abstract class BinaryEventHandler extends BaseSingleTagEventHandler {
      * @return the left operand from inputs[0]
      */
     public Object getLeft(Object[] inputs) {
-        return assertGetInput(0, inputs, "left");
+//        return assertGetInput(0, inputs, "left");
+        Object leftVal = inputs[0];
+        return leftVal != null ? leftVal : Undefined.instance;
     }
 
     /**

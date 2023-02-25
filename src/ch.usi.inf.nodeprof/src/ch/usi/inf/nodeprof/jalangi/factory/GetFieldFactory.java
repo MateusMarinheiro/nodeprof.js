@@ -16,13 +16,24 @@
  * *****************************************************************************/
 package ch.usi.inf.nodeprof.jalangi.factory;
 
+import ch.usi.inf.nodeprof.utils.SourceMapping;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
+import com.oracle.truffle.api.instrumentation.InstrumentableNode;
 import com.oracle.truffle.api.interop.InteropException;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.PropertyReadEventHandler;
+import com.oracle.truffle.js.nodes.function.JSFunctionCallNode;
+import com.oracle.truffle.js.runtime.builtins.JSFunction;
+import com.oracle.truffle.js.runtime.builtins.JSFunctionData;
+import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
+import com.oracle.truffle.js.runtime.objects.JSObject;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 public class GetFieldFactory extends AbstractFactory {
 
@@ -50,6 +61,17 @@ public class GetFieldFactory extends AbstractFactory {
             public Object executePost(VirtualFrame frame, Object result,
                                       Object[] inputs) throws InteropException {
                 if (post != null && !this.isGlobal(inputs)) {
+                    Node grandParent = context.getInstrumentedNode().getParent().getParent();
+                    if (grandParent instanceof JSFunctionCallNode) {
+//                        System.out.println(((InstrumentableNode.WrapperNode) grandParent.getParent()));
+//                        for (Node child : grandParent.getParent()) {
+//                            System.out.println("--" + child.getSourceSection());
+//                        }
+//                        ((JSFunctionCallNode) grandParent)
+//                        JSFunctionObject fun = (JSFunctionObject) ((JSFunctionCallNode) grandParent).getNodeObject();
+//                        String name = JSFunction.getName(fun).toJavaStringUncached();
+//                        System.out.println(name + " " + SourceMapping.isInternal(((JSFunctionCallNode) grandParent).getSourceSection().getSource()));
+                    }
                     return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), convertResult(result), false, isOpAssign(), isMethodCall());
                 }
                 return null;
