@@ -16,32 +16,20 @@
  * *****************************************************************************/
 package ch.usi.inf.nodeprof.analysis;
 
+import ch.usi.inf.nodeprof.ProfiledTagEnum;
+import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.BinaryEventHandler;
-import ch.usi.inf.nodeprof.handlers.ExpressionEventHandler;
 import ch.usi.inf.nodeprof.handlers.FunctionCallEventHandler;
-import ch.usi.inf.nodeprof.handlers.VarReadEventHandler;
-import com.oracle.truffle.api.CallTarget;
+import ch.usi.inf.nodeprof.utils.GlobalConfiguration;
+import ch.usi.inf.nodeprof.utils.Logger;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.EventBinding;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
-import com.oracle.truffle.api.instrumentation.InstrumentableNode;
-import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.nodes.ControlFlowException;
-import com.oracle.truffle.js.builtins.JavaBuiltins;
-import com.oracle.truffle.js.nodes.JavaScriptNode;
 import com.oracle.truffle.js.runtime.GraalJSException;
-
-import ch.usi.inf.nodeprof.ProfiledTagEnum;
-import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
-import ch.usi.inf.nodeprof.utils.GlobalConfiguration;
-import ch.usi.inf.nodeprof.utils.Logger;
-
-import java.util.Arrays;
 
 public class ProfilerExecutionEventNode extends ExecutionEventNode {
     protected final EventContext context;
@@ -79,23 +67,6 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         this.cb = cb;
         this.cb.nodeCount++;
         this.child = child;
-
-//        if (this.child instanceof BinaryEventHandler) {
-//            System.out.println(this.context.getInstrumentedNode());
-//
-//            throw context.createUnwind(42);
-
-//            if (this.context.getInstrumentedNode() instanceof JavaScriptNode) {
-//                this.context.getInstrumentedNode().replace(wrapper);
-//            }
-//            this.context.getInstrumentedNode().replace(new JavaScriptNodeWrapper())
-//            this.context.getInstrumentedNode().replace(new JavaScriptNode() {
-//                @Override
-//                public Object execute(VirtualFrame frame) {
-//                    return "flub";
-//                }
-//            });
-//        }
     }
 
     public EventContext getContext() {
@@ -109,32 +80,38 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
             return;
         }
 
-//        if (child instanceof FunctionCallEventHandler) {
-//            System.out.println("FunctionCallNode: " + context.getInstrumentedNode());
-////            System.out.println("Function input " + (inputIndex > 2 ? ((FunctionCallEventHandler) child).getFunctionName(getSavedInputValues(frame)) : "") + ": " + inputValue);
-//        }
-
-        try {
-            this.child.executeOnInput(frame, inputIndex, inputValue);
-        } catch (Throwable e) {
-            reportError(null, e);
-        }
-
+        Object newResult = null;
         if (child.expectedNumInputs() < 0 || inputIndex < child.expectedNumInputs()) {
             // save input only necessary
             saveInputValue(frame, inputIndex, inputValue);
+
+            System.out.println("Input " + this.child);
+
+            try {
+                /*newResult = */this.child.executeOnInput(frame, inputIndex, inputValue);
+            } catch (Throwable e) {
+                reportError(null, e);
+            }
         }
 
         if (this.child.isLastIndex(getInputCount(), inputIndex)) {
             this.cb.preHitCount++;
+//            Object newResult = null;
             try {
-                this.child.executePre(frame, child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null);
-
+                // this does not work as expected -> it just replaces the last input
+                /*newResult = */
+                newResult = this.child.executePre(frame, child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null);
+                System.out.println("Pre " + this.child + " " + newResult);
                 // allow for handler changes after executePre/Post
                 checkHandlerChanges();
             } catch (Throwable e) {
                 reportError(null, e);
             }
+        }
+
+        if (newResult != null) {
+            CompilerDirectives.transferToInterpreter();
+            throw context.createUnwind(newResult);
         }
     }
 
@@ -145,18 +122,24 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         }
 
         hasOnEnter++;
+        Object newResult = null;
         try {
             this.child.enter(frame);
+
             if (this.child.isLastIndex(getInputCount(), -1)) {
                 this.cb.preHitCount++;
 
-                this.child.executePre(frame, null);
+                newResult = this.child.executePre(frame, null);
 
                 // allow for handler changes after executePre/Post
                 checkHandlerChanges();
             }
         } catch (Throwable e) {
             reportError(null, e);
+        }
+        if (newResult != null) {
+            CompilerDirectives.transferToInterpreter();
+            throw context.createUnwind(newResult);
         }
     }
 
@@ -172,7 +155,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         Object newResult = null;
 
         try {
-            if (hasOnEnter > 0) {
+            if (hasOnEnter > 0) {  // not sure what hasOnEnter is needed for (is it possible to enter more often then return?)
                 hasOnEnter--;
                 this.cb.postHitCount++;
                 inputs = child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null;
@@ -193,6 +176,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
 
     @Override
     protected Object onUnwind(VirtualFrame frame, Object info) {
+//        hasOnEnter = 0;
 //        System.out.println("Unwind: " + info);
         // ToDo - some debug output?
         return info;

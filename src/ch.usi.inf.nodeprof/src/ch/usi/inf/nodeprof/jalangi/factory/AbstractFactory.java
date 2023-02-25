@@ -222,57 +222,57 @@ public abstract class AbstractFactory implements
             }
         }
 
-        public void preCall(BaseEventHandlerNode handler, Object... args) {
+        public Object preCall(BaseEventHandlerNode handler, Object... args) {
             assertNoStringLeak(args);
-            if (pre != null) {
-                if (beforeCall()) {
-                    try {
-                        Object ret = preCall.call(args);
-                        checkDeactivate(ret, handler);
-                    } catch (JSInterruptedExecutionException e) {
-                        Logger.error("execution cancelled probably due to timeout");
-                    } finally {
-                        afterCall();
-                    }
-                }
+
+            if (pre == null || !beforeCall()) return null;
+
+            try {
+                Object ret = preCall.call(args);
+                checkDeactivate(ret, handler);
+
+                return readReturnMember(ret, "result");
+            } catch (JSInterruptedExecutionException e) {
+                Logger.error("execution cancelled probably due to timeout");
+                return null;
+            } finally {
+                afterCall();
             }
         }
 
         public Object postCall(BaseEventHandlerNode handler, Object... args) {
             assertNoStringLeak(args);
-            if (post != null) {
-                if (beforeCall()) {
-                    try {
-                        Object ret = postCall.call(args);
-                        checkDeactivate(ret, handler);
+            if (post == null || !beforeCall()) return null;
 
-                        // Get result from js call and return it to change node result if needed
-                        // Maybe this would be nicer to do in the specific factories for more fine-grained control
-                        return readReturnMember(ret, "result");
-                    } catch (JSInterruptedExecutionException e) {
-                        Logger.error("execution cancelled probably due to timeout");
-                    } finally {
-                        afterCall();
-                    }
-                }
+            try {
+                Object ret = postCall.call(args);
+                checkDeactivate(ret, handler);
+
+                // Get result from js call and return it to change node result if needed
+                // Maybe this would be nicer to do in the specific factories for more fine-grained control
+                return readReturnMember(ret, "result");
+            } catch (JSInterruptedExecutionException e) {
+                Logger.error("execution cancelled probably due to timeout");
+                return null;
+            } finally {
+                afterCall();
             }
 
-            return null;
         }
 
-        public void onInputCall(BaseEventHandlerNode handler, Object... args) {
+        public Object onInputCall(BaseEventHandlerNode handler, Object... args) {
             assertNoStringLeak(args);
-            if (onInput == null) return;
+            if (onInput == null || !beforeCall()) return null;
 
-            if (beforeCall()) {
-                try {
-                    Object ret = onInputCall.call(args);
-                    checkDeactivate(ret, handler);
-                } catch (JSInterruptedExecutionException e) {
-                    Logger.error("execution cancelled probably due to timeout");
-                } finally {
-                    afterCall();
-                }
+            try {
+                Object ret = onInputCall.call(args);
+                checkDeactivate(ret, handler);
+                return readReturnMember(ret, "result");
+            } catch (JSInterruptedExecutionException e) {
+                Logger.error("execution cancelled probably due to timeout");
+                return null;
+            } finally {
+                afterCall();
             }
         }
 

@@ -37,10 +37,11 @@ public class PutElementFactory extends AbstractFactory {
             @Child CallbackNode cbNode = new CallbackNode();
 
             @Override
-            public void executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
+            public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
                 if (pre != null) {
-                    cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getReceiver(inputs), getProperty(inputs), getValue(inputs), true, isOpAssign());
+                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getReceiver(inputs), getProperty(inputs), getValue(inputs), true, isOpAssign());
                 }
+                return null;
             }
 
             @Override

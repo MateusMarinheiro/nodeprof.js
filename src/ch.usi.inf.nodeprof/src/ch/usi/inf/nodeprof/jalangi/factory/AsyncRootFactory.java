@@ -37,10 +37,11 @@ public class AsyncRootFactory extends AbstractFactory {
             @Child CallbackNode cbNode = new CallbackNode();
 
             @Override
-            public void executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
+            public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
                 if (pre != null && this.isAsyncRoot()) {
                     cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID());
                 }
+                return null;
             }
 
             @Override

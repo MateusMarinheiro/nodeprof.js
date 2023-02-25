@@ -43,15 +43,16 @@ public class EvalFactory extends AbstractFactory {
             @Node.Child MakeArgumentArrayNode makeArgs = isInvoke ? (MakeArgumentArrayNodeGen.create(pre == null ? post : pre, 1, 0)) : null;
 
             @Override
-            public void executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
+            public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
                 if (pre != null) {
                     if (!isInvoke) {
-                        cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getCode(inputs));
+                        return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getCode(inputs));
                     } else {
                         inputs[1] = getCode(inputs);
-                        cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), inputs[0], Undefined.instance, makeArgs.executeArguments(inputs), false, false, 0, 0);
+                        return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), inputs[0], Undefined.instance, makeArgs.executeArguments(inputs), false, false, 0, 0);
                     }
                 }
+                return null;
             }
 
             @Override

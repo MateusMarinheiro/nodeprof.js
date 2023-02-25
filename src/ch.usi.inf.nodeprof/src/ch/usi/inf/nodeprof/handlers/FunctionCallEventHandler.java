@@ -16,9 +16,12 @@
  * *****************************************************************************/
 package ch.usi.inf.nodeprof.handlers;
 
+import ch.usi.inf.nodeprof.utils.SourceMapping;
 import com.oracle.truffle.api.instrumentation.EventContext;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
+import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
 
 import ch.usi.inf.nodeprof.ProfiledTagEnum;
@@ -41,12 +44,9 @@ public abstract class FunctionCallEventHandler extends BaseSingleTagEventHandler
     }
 
     public Object getFunction(Object[] inputs) {
-        Object result;
-        if (isNew) {
-            result = assertGetInput(0, inputs, "func");
-        } else {
-            result = assertGetInput(1, inputs, "func");
-        }
+        int funIndex = isNew ? 0 : 1;
+        Object result = assertGetInput(funIndex, inputs, "func");
+
         // it's possible the user invoke an non-function object raising a runtime exception
         // In nodeprof, we allow the function object to be passed to the dynamic analysis as it is
         // i.e., result might not be a JS function object
@@ -71,6 +71,21 @@ public abstract class FunctionCallEventHandler extends BaseSingleTagEventHandler
 
     public Object getArgument(Object[] inputs, int index) {
         return assertGetInput(getOffSet() + index, inputs, "arg");
+    }
+
+    /**
+     * Checks if a function is internally defined (i.e. js internal or nodejs)
+     *
+     * @param fun - the function object
+     * @throws UnsupportedMessageException
+     */
+    public boolean isInternal(Object fun) throws UnsupportedMessageException {
+        return fun instanceof JSFunctionObject
+                && SourceMapping.isInternal(((JSFunctionObject) fun).getSourceLocation().getSource());
+    }
+
+    public boolean isInternal(Object[] inputs) throws UnsupportedMessageException {
+        return this.isInternal(getFunction(inputs));
     }
 
     /**

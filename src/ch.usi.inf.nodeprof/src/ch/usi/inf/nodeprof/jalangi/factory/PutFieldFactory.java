@@ -27,31 +27,29 @@ import ch.usi.inf.nodeprof.handlers.PropertyWriteEventHandler;
 public class PutFieldFactory extends AbstractFactory {
 
     public PutFieldFactory(Object jalangiAnalysis, DynamicObject pre,
-                    DynamicObject post) {
+                           DynamicObject post) {
         super("putField", jalangiAnalysis, pre, post);
     }
 
     @Override
     public BaseEventHandlerNode create(EventContext context) {
         return new PropertyWriteEventHandler(context) {
-            @Child CallbackNode cbNode = new CallbackNode();
+            @Child
+            CallbackNode cbNode = new CallbackNode();
 
             @Override
-            public void executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
-                if (pre != null) {
-                    if (!this.isGlobal(inputs)) {
-                        cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getReceiver(inputs), getProperty(), getValue(inputs), false, isOpAssign());
-                    }
+            public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
+                if (pre != null && !this.isGlobal(inputs)) {
+                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getReceiver(inputs), getProperty(), getValue(inputs), false, isOpAssign());
                 }
+                return null;
             }
 
             @Override
             public Object executePost(VirtualFrame frame, Object result,
-                            Object[] inputs) throws InteropException {
-                if (post != null) {
-                    if (!this.isGlobal(inputs)) {
-                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), getValue(inputs), false, isOpAssign());
-                    }
+                                      Object[] inputs) throws InteropException {
+                if (post != null && !this.isGlobal(inputs)) {
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), getValue(inputs), false, isOpAssign());
                 }
                 return null;
             }

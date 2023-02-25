@@ -41,12 +41,9 @@ public class AwaitFactory extends AbstractFactory {
             @Child CallbackNode cbNode = new CallbackNode();
 
             @Override
-            public void executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
-                if (!this.isAwaitNode()) {
-                    return;
-                }
-                if (inputs == null || inputs.length == 0) {
-                    return;
+            public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
+                if (!this.isAwaitNode() || inputs == null || inputs.length == 0) {
+                    return null;
                 }
 
                 if (pre != null) {
@@ -54,12 +51,12 @@ public class AwaitFactory extends AbstractFactory {
                         // both inputs are the same promise: await this promise
                         storeAwaitValue(frame, inputs[0]);
                         cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), assertGetInput(0, inputs, "awaited val"));
-                        return;
+                        return null;
                     } else if (inputs[0] != inputs[1] && JSPromise.isJSPromise(inputs[1])) {
                         // inputs[0] is some value that is awaited, and inputs[1] is the internal promise
                         storeAwaitValue(frame, inputs[0]);
                         cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), assertGetInput(0, inputs, "awaited val"));
-                        return;
+                        return null;
                     }
                 }
                 if (post != null) {
@@ -72,10 +69,11 @@ public class AwaitFactory extends AbstractFactory {
                                         awaitVal,
                                         assertGetInput(1, inputs, "awaited ret"),
                                         JSPromise.isJSPromise(awaitVal) && JSPromise.isRejected((DynamicObject) awaitVal));
-                        return;
+                        return null;
                     }
                 }
                 assert false : "should not reach here";
+                return null;
             }
         };
     }

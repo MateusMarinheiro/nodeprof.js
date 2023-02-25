@@ -16,7 +16,9 @@
  * *****************************************************************************/
 package ch.usi.inf.nodeprof.jalangi.factory;
 
+import ch.usi.inf.nodeprof.utils.SourceMapping;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.impl.DefaultCallTarget;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -24,12 +26,14 @@ import com.oracle.truffle.api.object.DynamicObject;
 import ch.usi.inf.nodeprof.ProfiledTagEnum;
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.FunctionCallEventHandler;
+import com.oracle.truffle.js.runtime.builtins.JSFunction;
+import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
 
 public class InvokeFactory extends AbstractFactory {
     private final ProfiledTagEnum tag; // can be INVOKE or NEW
 
     public InvokeFactory(Object jalangiAnalysis, ProfiledTagEnum tag, DynamicObject pre,
-                    DynamicObject post, DynamicObject onInput) {
+                         DynamicObject post, DynamicObject onInput) {
         super("invokeFun", jalangiAnalysis, pre, post, onInput);
         this.tag = tag;
     }
@@ -38,34 +42,45 @@ public class InvokeFactory extends AbstractFactory {
     public BaseEventHandlerNode create(EventContext context) {
         return new FunctionCallEventHandler(context, tag) {
 
-            @Child MakeArgumentArrayNode makeArgs = MakeArgumentArrayNodeGen.create(pre == null ? post : pre, getOffSet(), 0);
-            @Child CallbackNode cbNode = new CallbackNode();
+            @Child
+            MakeArgumentArrayNode makeArgs = MakeArgumentArrayNodeGen.create(pre == null ? post : pre, getOffSet(), 0);
+            @Child
+            CallbackNode cbNode = new CallbackNode();
+
+            // cache the function to pass on input to not have to fetch all inputs every time
+            Object function = null;
 
             @Override
-            public void executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
+            public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
                 if (pre != null) {
                     // TODO Jalangi's function iid/sid are set to be 0/0
-                    cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getFunction(inputs), getReceiver(inputs), makeArgs.executeArguments(inputs), isNew(), isInvoke(), 0, 0);
-                }
-            }
-
-            @Override
-            public Object executePost(VirtualFrame frame, Object result,
-                            Object[] inputs) throws InteropException {
-                if (post != null) {
-                    // TODO Jalangi's function iid/sid are set to be 0/0
-                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getFunction(inputs), getReceiver(inputs), makeArgs.executeArguments(inputs), convertResult(result), isNew(),
-                                    isInvoke(), 0, 0);
+                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getFunction(inputs), getReceiver(inputs), makeArgs.executeArguments(inputs), isNew(), isInvoke(), 0, 0);
                 }
                 return null;
             }
 
             @Override
-            public void executeOnInput(VirtualFrame frame, int inputIndex, Object input) throws InteropException {
-                // only call input call when the function is read
-                if (onInput == null || inputIndex != getOffSet() - 1) return;
+            public Object executePost(VirtualFrame frame, Object result,
+                                      Object[] inputs) throws InteropException {
+                if (post != null) {
+                    // TODO Jalangi's function iid/sid are set to be 0/0
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getFunction(inputs), getReceiver(inputs), makeArgs.executeArguments(inputs), convertResult(result), isNew(),
+                            isInvoke(), 0, 0);
+                }
+                return null;
+            }
 
-                cbNode.onInputCall(this, jalangiAnalysis, onInput, getSourceIID(), inputIndex, input);
+            @Override
+            public Object executeOnInput(VirtualFrame frame, int inputIndex, Object input) throws InteropException {
+                // only call input call when the function is read
+                if (onInput == null || inputIndex < getOffSet() - 1) return null;
+
+                if (inputIndex == getOffSet() - 1) {
+                    this.function = input;
+                    return null;
+                }
+
+                return cbNode.onInputCall(this, jalangiAnalysis, onInput, getSourceIID(), this.function, isInternal(this.function), input, inputIndex);
             }
         };
     }

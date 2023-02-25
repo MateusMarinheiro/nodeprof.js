@@ -35,11 +35,12 @@ public class ForObjectFactory extends AbstractFactory {
             @Child CallbackNode cbNode = new CallbackNode();
 
             @Override
-            public void executePre(VirtualFrame frame,
+            public Object executePre(VirtualFrame frame,
                             Object[] inputs) throws InteropException {
                 if (pre != null && (isForIn() || isForOf())) {
-                    cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), isForIn());
+                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), isForIn());
                 }
+                return null;
             }
         };
     }

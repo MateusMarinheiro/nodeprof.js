@@ -53,11 +53,15 @@ public class MultiEventHandler extends BaseSingleTagEventHandler {
 
     @Override
     @ExplodeLoop
-    public void executePre(VirtualFrame frame, Object[] inputs) throws Exception {
+    public Object executePre(VirtualFrame frame, Object[] inputs) throws Exception {
         for (BaseEventHandlerNode handler : handlers) {
-            handler.executePre(frame, inputs);
+            Object result = handler.executePre(frame, inputs);
+            if (result != null){
+                return result;
+            }
             noChildHandlerUpdate = noChildHandlerUpdate && (handler.wantsToUpdateHandler() == handler);
         }
+        return null;
     }
 
     @Override
@@ -109,7 +113,7 @@ public class MultiEventHandler extends BaseSingleTagEventHandler {
         for (BaseEventHandlerNode handler : handlers) {
             Object res = handler.executePost(frame, result, inputs);
             // If any handler wants to overwrite the return value, ignore the rest
-            // ToDo - test and validate
+            // This should work as normally only one callback is interested in the result - at least in the jalangi case (e.g. binary or conditional)
             if (res != null) {
                 return res;
             }

@@ -27,7 +27,7 @@ import ch.usi.inf.nodeprof.handlers.PropertyReadEventHandler;
 public class GetFieldFactory extends AbstractFactory {
 
     public GetFieldFactory(Object jalangiAnalysis, DynamicObject pre,
-                    DynamicObject post) {
+                           DynamicObject post) {
         super("getField", jalangiAnalysis, pre, post);
         // TODO
     }
@@ -35,26 +35,23 @@ public class GetFieldFactory extends AbstractFactory {
     @Override
     public BaseEventHandlerNode create(EventContext context) {
         return new PropertyReadEventHandler(context) {
-            @Child CallbackNode cbNode = new CallbackNode();
+            @Child
+            CallbackNode cbNode = new CallbackNode();
 
             @Override
-            public void executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
-                if (pre != null) {
-                    if (!this.isGlobal(inputs)) {
-                        cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getReceiver(inputs), getProperty(), false, isOpAssign(), isMethodCall());
-                    }
+            public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
+                if (pre != null && !this.isGlobal(inputs)) {
+                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getReceiver(inputs), getProperty(), false, isOpAssign(), isMethodCall());
                 }
+                return null;
             }
 
             @Override
             public Object executePost(VirtualFrame frame, Object result,
-                            Object[] inputs) throws InteropException {
-                if (post != null) {
-                    if (!this.isGlobal(inputs)) {
-                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), convertResult(result), false, isOpAssign(), isMethodCall());
-                    }
+                                      Object[] inputs) throws InteropException {
+                if (post != null && !this.isGlobal(inputs)) {
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), convertResult(result), false, isOpAssign(), isMethodCall());
                 }
-
                 return null;
             }
         };

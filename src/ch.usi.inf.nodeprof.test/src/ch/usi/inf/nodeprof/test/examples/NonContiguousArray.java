@@ -74,10 +74,10 @@ public class NonContiguousArray extends TestableNodeProfAnalysis {
                     @Child GetArraySizeNode getArraySize = GetArraySizeNodeGen.create();
 
                     @Override
-                    public void executePre(VirtualFrame frame, Object[] inputs) {
+                    public Object executePre(VirtualFrame frame, Object[] inputs) {
                         if (!JSArray.isJSArray(getReceiver(inputs))) {
                             addDebugEvent("EW_NONARRAY", getSourceIID(), ProfiledTagEnum.ELEMENT_WRITE);
-                            return;
+                            return null;
                         }
 
                         Object convertedIndex = toArrayIndex.execute(getProperty(inputs));
@@ -96,6 +96,7 @@ public class NonContiguousArray extends TestableNodeProfAnalysis {
                         } else {
                             addDebugEvent("EW_ARRAY_ELSE", getSourceIID(), ProfiledTagEnum.ELEMENT_WRITE, convertedIndex);
                         }
+                        return null;
                     }
                 };
             }

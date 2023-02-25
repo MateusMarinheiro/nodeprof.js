@@ -224,7 +224,7 @@ public class TypedArray extends TestableNodeProfAnalysis {
                     @Child ReportEntryNode getReportNode = ReportEntryNodeGen.create(db, new TypedArrayFactory());
 
                     @Override
-                    public void executePre(VirtualFrame frame,
+                    public Object executePre(VirtualFrame frame,
                                     Object[] inputs) {
                         Object convertedIndex = toArrayIndex.execute(getProperty(inputs));
 
@@ -235,7 +235,7 @@ public class TypedArray extends TestableNodeProfAnalysis {
                                  * the receiver is not allocated as an array and as a result is not
                                  * considered to be typed-able
                                  */
-                                return;
+                                return null;
                             }
                             addDebugEvent("TA_EW_INT", iid, ProfiledTagEnum.ELEMENT_WRITE, convertedIndex);
                             TypedArrayReport report = (TypedArrayReport) getReportNode.execute(iid);
@@ -250,6 +250,7 @@ public class TypedArray extends TestableNodeProfAnalysis {
                         } else {
                             addDebugEvent("TA_EW_OTHER", getSourceIID(), ProfiledTagEnum.ELEMENT_WRITE);
                         }
+                        return null;
                     }
 
                 };

@@ -273,53 +273,6 @@ public abstract class NodeProfAnalysis {
                 SourceSectionFilter eventFilter = SourceSectionFilter.newBuilder().tagIs(eventTags).sourceIs(sourceFilter).build();
                 SourceSectionFilter inputFilter = SourceSectionFilter.newBuilder().tagIs(StandardTags.ExpressionTag.class, InputNodeTag.class).build();
 
-//                getInstrumenter().attachExecutionEventListener(
-//                        SourceSectionFilter.newBuilder().tagIs(ProfiledTagEnum.BINARY.getTag()).build(),
-//                        new ExecutionEventListener() {
-//                            @Override
-//                            public void onEnter(EventContext context, VirtualFrame frame) {
-//
-//                            }
-//
-//                            @TruffleBoundary
-//                            public Object getAttribute(String key, EventContext context) {
-//                                Object result = null;
-//                                try {
-//                                    result = InteropLibrary.getFactory().getUncached().readMember(((InstrumentableNode) context.getInstrumentedNode()).getNodeObject(), key);
-//                                } catch (Exception e) {
-//                                    // ignore
-//                                }
-//                                return result;
-//                            }
-//
-//
-//                            @Override
-//                            public void onReturnValue(EventContext context, VirtualFrame frame, Object result) {
-//                                if (!result.toString().equals("x")) return;
-//
-//                                throw context.createUnwind(42);
-//
-////                                String op = (String) getAttribute("operator", context);
-////                                System.out.println(op);
-////
-////                                boolean isLogic = op.equals("||") || op.equals("&&");
-////                                if (isLogic) return;
-////
-////                                System.out.println("Listener Return: " + result);
-//                            }
-//
-//                            @Override
-//                            public Object onUnwind(EventContext context, VirtualFrame frame, Object info) {
-//                                return info;
-//                            }
-//
-//                            @Override
-//                            public void onReturnExceptional(EventContext context, VirtualFrame frame, Throwable exception) {
-//
-//                            }
-//                        }
-//                );
-
                 getInstrumenter().attachExecutionEventFactory(
                         eventFilter,
                         inputFilter,
