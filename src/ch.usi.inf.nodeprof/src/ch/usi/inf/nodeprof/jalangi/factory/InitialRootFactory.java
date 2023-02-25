@@ -75,16 +75,16 @@ public class InitialRootFactory extends AbstractFactory {
             }
 
             @Override
-            public void executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
+            public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
                 checkForSymbolicLocation(context.getInstrumentedNode(), getArguments(frame));
 
                 if (post == null) {
-                    return;
+                    return null;
                 }
 
                 Source source = getSource();
                 if (source == null) {
-                    return;
+                    return null;
                 }
 
                 TruffleString sourceAsString = sourceStringIfNew(source);
@@ -97,6 +97,7 @@ public class InitialRootFactory extends AbstractFactory {
                                                                                 // object
                                     sourceAsString); // arg 2: source code
                 }
+                return null;
             }
         };
     }

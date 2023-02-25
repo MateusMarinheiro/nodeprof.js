@@ -108,7 +108,8 @@ public abstract class BaseEventHandlerNode extends Node {
      * @param inputs the input array get from ExecutionEventNode.getSavedInputValues()
      * @throws Exception
      */
-    public void executePre(VirtualFrame frame, Object[] inputs) throws Exception {
+    public Object executePre(VirtualFrame frame, Object[] inputs) throws Exception {
+        return null;
     }
 
     /**
@@ -120,7 +121,8 @@ public abstract class BaseEventHandlerNode extends Node {
         return null;
     }
 
-    public void executeOnInput(VirtualFrame frame, int inputIndex, Object input) throws Exception {
+    public Object executeOnInput(VirtualFrame frame, int inputIndex, Object input) throws Exception {
+        return null;
     }
 
     public void executeExceptional(@SuppressWarnings("unused") VirtualFrame frame, @SuppressWarnings("unused") Throwable exception) throws Exception {

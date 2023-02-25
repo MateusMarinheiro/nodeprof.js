@@ -39,10 +39,11 @@ public class ExpressionFactory extends AbstractFactory {
             @Child CallbackNode cbNode = new CallbackNode();
 
             @Override
-            public void executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
+            public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
                 if (pre != null) {
-                    cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getExpressionType());
+                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getExpressionType());
                 }
+                return null;
             }
 
             @Override

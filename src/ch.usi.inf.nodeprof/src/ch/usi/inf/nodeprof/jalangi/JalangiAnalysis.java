@@ -104,7 +104,7 @@ public class JalangiAnalysis {
             // function calls
             put("functionEnter", EnumSet.of(ROOT));
             put("functionExit", EnumSet.of(ROOT));
-            put("invokeFunPreArg", EnumSet.of(INVOKE, NEW));
+            put("newFunctionArg", EnumSet.of(INVOKE, NEW));
             put("invokeFunPre", EnumSet.of(INVOKE, NEW));
             put("invokeFun", EnumSet.of(INVOKE, NEW));
 
@@ -186,12 +186,12 @@ public class JalangiAnalysis {
         if (GlobalConfiguration.DEBUG) {
             Logger.debug("analysis is ready " + callbacks.keySet());
         }
-        if (this.callbacks.containsKey("invokeFunPre") || callbacks.containsKey("invokeFun") || callbacks.containsKey("invokeFunPreArg")) {
-            InvokeFactory invokeFactory = new InvokeFactory(this.jsAnalysis, ProfiledTagEnum.INVOKE, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"), callbacks.get("invokeFunPreArg"));
+        if (this.callbacks.containsKey("invokeFunPre") || callbacks.containsKey("invokeFun") || callbacks.containsKey("newFunctionArg")) {
+            InvokeFactory invokeFactory = new InvokeFactory(this.jsAnalysis, ProfiledTagEnum.INVOKE, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"), callbacks.get("newFunctionArg"));
             this.instrument.onCallback(
                     ProfiledTagEnum.INVOKE,
                     invokeFactory);
-            InvokeFactory newFactory = new InvokeFactory(this.jsAnalysis, ProfiledTagEnum.NEW, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"), callbacks.get("invokeFunPreArg"));
+            InvokeFactory newFactory = new InvokeFactory(this.jsAnalysis, ProfiledTagEnum.NEW, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"), callbacks.get("newFunctionArg"));
             this.instrument.onCallback(
                     ProfiledTagEnum.NEW,
                     newFactory);
@@ -256,13 +256,13 @@ public class JalangiAnalysis {
                             callbacks.get("unary")));
         }
 
-        if (this.callbacks.containsKey("conditional")) {
-            this.instrument.onCallback(ProfiledTagEnum.CF_BRANCH, new ConditionalFactory(
-                    this.jsAnalysis, callbacks.get("conditional"), false));
-            this.instrument.onCallback(
-                    ProfiledTagEnum.BINARY,
-                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
-        }
+//        if (this.callbacks.containsKey("conditional")) {
+//            this.instrument.onCallback(ProfiledTagEnum.CF_BRANCH, new ConditionalFactory(
+//                    this.jsAnalysis, callbacks.get("conditional"), false));
+//            this.instrument.onCallback(
+//                    ProfiledTagEnum.BINARY,
+//                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
+//        }
 
         /*
          * functionEnter/Exit callback: instruments root nodes of functions

@@ -42,10 +42,11 @@ public class EvalFunctionFactory extends AbstractFactory {
             final boolean isTarget = getBuiltinName().equals(JSFunction.CLASS_NAME);
 
             @Override
-            public void executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
+            public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
                 if (isTarget && pre != null) {
-                    cbNode.preCall(this, jalangiAnalysis, pre, makeArgs.executeArguments(getArguments(frame)));
+                    return cbNode.preCall(this, jalangiAnalysis, pre, makeArgs.executeArguments(getArguments(frame)));
                 }
+                return null;
             }
 
             @Override

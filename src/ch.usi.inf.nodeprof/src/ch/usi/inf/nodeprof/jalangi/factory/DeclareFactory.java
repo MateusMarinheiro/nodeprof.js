@@ -44,11 +44,11 @@ public class DeclareFactory extends AbstractFactory {
             @Child CallbackNode cbNode = new CallbackNode();
 
             @Override
-            public void executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
+            public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
                 if (pre != null) {
                     checkForSymbolicLocation(context.getInstrumentedNode(), frame.getArguments());
 
-                    cbNode.preCall(
+                    return cbNode.preCall(
                                     this,
                                     jalangiAnalysis,
                                     pre,
@@ -57,6 +57,7 @@ public class DeclareFactory extends AbstractFactory {
                                     getDeclareType(),
                                     isFunctionDeclaration() ? FUNC_DECL_STR : Undefined.instance);
                 }
+                return null;
             }
 
             @Override

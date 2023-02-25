@@ -45,10 +45,11 @@ public class BuiltinFactory extends AbstractFactory {
             final boolean isTarget = builtinFilter == null ? true : getBuiltinName().equals(builtinFilter);
 
             @Override
-            public void executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
+            public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
                 if (isTarget && pre != null) {
-                    cbNode.preCall(this, jalangiAnalysis, pre, getBuiltinName(), getFunction(frame), getReceiver(frame), makeArgs.executeArguments(getArguments(frame)));
+                    return cbNode.preCall(this, jalangiAnalysis, pre, getBuiltinName(), getFunction(frame), getReceiver(frame), makeArgs.executeArguments(getArguments(frame)));
                 }
+                return null;
             }
 
             @Override

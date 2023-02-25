@@ -37,11 +37,12 @@ public class ReturnFactory extends AbstractFactory {
             @Child CallbackNode cbNode = new CallbackNode();
 
             @Override
-            public void executePre(VirtualFrame frame,
+            public Object executePre(VirtualFrame frame,
                             Object[] inputs) throws InteropException {
                 if (pre != null && isReturnNode()) {
-                    cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), (inputs == null || inputs.length == 0) ? Undefined.instance : inputs[0]);
+                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), (inputs == null || inputs.length == 0) ? Undefined.instance : inputs[0]);
                 }
+                return null;
             }
 
             @Override

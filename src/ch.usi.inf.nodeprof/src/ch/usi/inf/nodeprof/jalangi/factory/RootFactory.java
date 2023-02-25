@@ -48,14 +48,15 @@ public class RootFactory extends AbstractFactory {
             CallbackNode cbNode = new CallbackNode();
 
             @Override
-            public void executePre(VirtualFrame frame, Object[] inputs) {
+            public Object executePre(VirtualFrame frame, Object[] inputs) {
                 if (isRegularExpression()) {
-                    return;
+                    return null;
                 }
 
                 if (!this.isBuiltin && pre != null) {
-                    cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getFunction(frame), getReceiver(frame), makeArgs.executeArguments(getArguments(frame)));
+                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getFunction(frame), getReceiver(frame), makeArgs.executeArguments(getArguments(frame)));
                 }
+                return null;
             }
 
             @Override

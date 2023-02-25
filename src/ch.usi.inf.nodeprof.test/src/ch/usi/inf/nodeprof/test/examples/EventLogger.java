@@ -75,8 +75,9 @@ public final class EventLogger extends TestableNodeProfAnalysis {
                         }
 
                         @Override
-                        public void executePre(VirtualFrame frame, Object[] inputs) {
+                        public Object executePre(VirtualFrame frame, Object[] inputs) {
                             addDebugEvent("PRE", getSourceIID(), tag);
+                            return null;
                         }
 
                         @Child ReportEntryNode reportNode = ReportEntryNodeGen.create(db, new ReportFactory() {

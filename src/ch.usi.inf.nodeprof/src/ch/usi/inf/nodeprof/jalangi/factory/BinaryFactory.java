@@ -39,10 +39,11 @@ public class BinaryFactory extends AbstractFactory {
             CallbackNode cbNode = new CallbackNode();
 
             @Override
-            public void executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
+            public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
                 if (pre != null && !isLogic()) {
-                    cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getOp(), getLeft(inputs), getRight(inputs));
+                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getOp(), getLeft(inputs), getRight(inputs));
                 }
+                return null;
             }
 
             @Override
