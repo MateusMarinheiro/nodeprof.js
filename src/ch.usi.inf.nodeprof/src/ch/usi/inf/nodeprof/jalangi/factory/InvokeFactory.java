@@ -27,6 +27,7 @@ import ch.usi.inf.nodeprof.ProfiledTagEnum;
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.FunctionCallEventHandler;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.js.runtime.GraalJSException;
 import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
 import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
@@ -80,7 +81,9 @@ public class InvokeFactory extends AbstractFactory {
             @Override
             public Object executeOnInput(VirtualFrame frame, int inputIndex, Object input) throws InteropException {
                 // only call input call when the function is read
-                if (onInput == null || inputIndex != getOffSet() - 1) return null;
+                // additionally check if input is actual function - in invalid code the function could be e.g. undefined
+                if (onInput == null || inputIndex != getOffSet() - 1 || !(input instanceof JSFunctionObject))
+                    return null;
 
                 Source src = ((JSFunctionObject) input).getSourceLocation().getSource();
                 boolean isBuiltin = src.isInternal();
@@ -109,7 +112,8 @@ public class InvokeFactory extends AbstractFactory {
                 if (onException == null) return null;
 
                 Object function = inputs.length >= this.getOffSet() - 1 ? inputs[this.getOffSet() - 1] : null;
-                return cbNode.onExceptionCall(this, jalangiAnalysis, onException, getSourceIID(), exception, function != null ? function : Undefined.instance);
+                Object jsErrorObject = exception instanceof GraalJSException ? ((GraalJSException) exception).getErrorObjectEager() : null; // get it eager, else it is null --> check performance implications
+                return cbNode.onExceptionCall(this, jalangiAnalysis, onException, getSourceIID(), jsErrorObject != null ? jsErrorObject : Undefined.instance, function != null ? function : Undefined.instance);
             }
         };
     }

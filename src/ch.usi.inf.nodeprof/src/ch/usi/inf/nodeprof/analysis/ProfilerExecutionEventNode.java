@@ -254,7 +254,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
                 if (exception instanceof ControlFlowException) {
                     // ToDo - look into this
                     this.child.executeExceptionalCtrlFlow(frame, exception, inputs);
-                } else {
+                } else if (exception instanceof GraalJSException) {
                     newResult = this.child.executeExceptional(frame, exception, inputs);
                 }
             }
