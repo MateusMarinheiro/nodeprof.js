@@ -26,12 +26,16 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.PropertyReadEventHandler;
+import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.js.nodes.function.JSFunctionCallNode;
+import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
 import com.oracle.truffle.js.runtime.builtins.JSFunctionData;
 import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
 import com.oracle.truffle.js.runtime.objects.JSObject;
+import com.oracle.truffle.js.runtime.objects.Undefined;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -61,18 +65,10 @@ public class GetFieldFactory extends AbstractFactory {
             public Object executePost(VirtualFrame frame, Object result,
                                       Object[] inputs) throws InteropException {
                 if (post != null && !this.isGlobal(inputs)) {
-                    Node grandParent = context.getInstrumentedNode().getParent().getParent();
-                    if (grandParent instanceof JSFunctionCallNode) {
-//                        System.out.println(((InstrumentableNode.WrapperNode) grandParent.getParent()));
-//                        for (Node child : grandParent.getParent()) {
-//                            System.out.println("--" + child.getSourceSection());
-//                        }
-//                        ((JSFunctionCallNode) grandParent)
-//                        JSFunctionObject fun = (JSFunctionObject) ((JSFunctionCallNode) grandParent).getNodeObject();
-//                        String name = JSFunction.getName(fun).toJavaStringUncached();
-//                        System.out.println(name + " " + SourceMapping.isInternal(((JSFunctionCallNode) grandParent).getSourceSection().getSource()));
-                    }
-                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), convertResult(result), false, isOpAssign(), isMethodCall());
+                    // Only fetch scope when we have an undefine prop read -> this is specific to our case to improve performance
+                    // To generalize remove
+                    Object scope = result == Undefined.instance ? getScope() : Undefined.instance;
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), convertResult(result), false, isOpAssign(), isMethodCall(), scope);
                 }
                 return null;
             }
