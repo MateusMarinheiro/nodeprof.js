@@ -28,6 +28,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.js.runtime.Strings;
@@ -288,6 +289,43 @@ public abstract class BaseEventHandlerNode extends Node {
      */
     public int getPriority() {
         return 0;
+    }
+
+    /**
+     * Get context JavaScript scope object in the form of a location string
+     * @return string in the form of
+     *  <builtin> for builtin scope
+     *  node:[module] for internal node.js modules
+     *  node_modules/[pathToModule] for dependencies
+     *  file://[appFilePath] for app level scope
+     *  Undefined
+     */
+    public Object getScope() {
+        if (context.getInstrumentedNode() == null) {
+            return Undefined.instance;
+        }
+
+        Source src = context.getInstrumentedNode().getSourceSection().getSource();
+        String scope = null;
+        if (src.isInternal()) {
+            scope = "<builtin>";
+        } else {
+            String uri = src.getURI().toString();
+            if (uri.startsWith("file://")) {
+                int moduleIndex = uri.indexOf("/node_modules/");
+                if (moduleIndex > -1) {
+                    scope = uri.substring(moduleIndex + 1);
+                } else {
+                    scope = uri;
+                }
+            } else {
+                int internalIndex = uri.indexOf("/node:");
+                if (internalIndex > -1) {
+                    scope = uri.substring(internalIndex + 1);
+                }
+            }
+        }
+        return scope != null ? Strings.fromJavaString(scope) : Undefined.instance;
     }
 
     /**
