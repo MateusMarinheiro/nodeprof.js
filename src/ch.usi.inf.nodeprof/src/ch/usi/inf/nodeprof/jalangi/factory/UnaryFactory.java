@@ -23,11 +23,11 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.UnaryEventHandler;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 public class UnaryFactory extends AbstractFactory {
 
-    public UnaryFactory(Object jalangiAnalysis, DynamicObject pre,
-                    DynamicObject post) {
+    public UnaryFactory(Object jalangiAnalysis, JSDynamicObject pre, JSDynamicObject post) {
         super("unary", jalangiAnalysis, pre, post);
     }
 

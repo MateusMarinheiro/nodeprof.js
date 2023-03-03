@@ -40,6 +40,7 @@ import com.oracle.truffle.js.runtime.builtins.JSAbstractArray;
 import com.oracle.truffle.js.runtime.builtins.JSArray;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
 import com.oracle.truffle.js.runtime.builtins.JSOrdinary;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.JSObject;
 import com.oracle.truffle.js.runtime.objects.Null;
 import com.oracle.truffle.js.runtime.objects.Undefined;
@@ -50,10 +51,10 @@ public abstract class AbstractFactory implements
     // the jalangi analysis object
     protected final Object jalangiAnalysis;
 
-    protected final DynamicObject pre;
-    protected final DynamicObject post;
-    protected final DynamicObject onInput;
-    protected final DynamicObject onException;
+    protected final JSDynamicObject pre;
+    protected final JSDynamicObject post;
+    protected final JSDynamicObject onInput;
+    protected final JSDynamicObject onException;
 
     protected final String jalangiCallback;
 
@@ -84,7 +85,7 @@ public abstract class AbstractFactory implements
     protected static Object[] readArray(DynamicObject cb, String name) {
         Object ret = readCBProperty(cb, name);
         if (JSArray.isJSArray(ret)) {
-            return JSAbstractArray.toArray((DynamicObject) ret);
+            return JSAbstractArray.toArray((JSDynamicObject) ret);
         }
         return null;
     }
@@ -111,8 +112,8 @@ public abstract class AbstractFactory implements
         }
     }
 
-    public AbstractFactory(String jalangiCallback, Object jalangiAnalysis, DynamicObject pre,
-                           DynamicObject post, DynamicObject onInput, DynamicObject onException) {
+    public AbstractFactory(String jalangiCallback, Object jalangiAnalysis, JSDynamicObject pre,
+                           JSDynamicObject post, JSDynamicObject onInput, JSDynamicObject onException) {
         this.jalangiCallback = jalangiCallback;
         this.jalangiAnalysis = jalangiAnalysis;
         this.pre = pre;
@@ -121,8 +122,8 @@ public abstract class AbstractFactory implements
         this.onException = onException;
     }
 
-    public AbstractFactory(String jalangiCallback, Object jalangiAnalysis, DynamicObject pre,
-                           DynamicObject post) {
+    public AbstractFactory(String jalangiCallback, Object jalangiAnalysis, JSDynamicObject pre,
+                           JSDynamicObject post) {
         this(jalangiCallback, jalangiAnalysis, pre, post, null, null);
     }
 
@@ -151,7 +152,7 @@ public abstract class AbstractFactory implements
         } else {
             JSContext ctx = GlobalObjectCache.getInstance().getJSContext();
             JSRealm realm = JSRealm.get(null);
-            DynamicObject wrapped = JSOrdinary.create(ctx, realm);
+            JSDynamicObject wrapped = JSOrdinary.create(ctx, realm);
             if (exception instanceof YieldException) {
                 JSObject.set(wrapped, YIELD_STR, true);
             } else {

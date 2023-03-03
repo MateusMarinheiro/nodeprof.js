@@ -26,12 +26,13 @@ import com.oracle.truffle.js.runtime.builtins.JSPromise;
 
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.CFBranchEventHandler;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 import java.util.Stack;
 
 public class AwaitFactory extends AbstractFactory {
 
-    public AwaitFactory(Object jalangiAnalysis, DynamicObject pre, DynamicObject post) {
+    public AwaitFactory(Object jalangiAnalysis, JSDynamicObject pre, JSDynamicObject post) {
         super("await", jalangiAnalysis, pre, post);
     }
 
@@ -68,7 +69,7 @@ public class AwaitFactory extends AbstractFactory {
                         cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(),
                                         awaitVal,
                                         assertGetInput(1, inputs, "awaited ret"),
-                                        JSPromise.isJSPromise(awaitVal) && JSPromise.isRejected((DynamicObject) awaitVal));
+                                        JSPromise.isJSPromise(awaitVal) && JSPromise.isRejected((JSDynamicObject) awaitVal));
                         return null;
                     }
                 }

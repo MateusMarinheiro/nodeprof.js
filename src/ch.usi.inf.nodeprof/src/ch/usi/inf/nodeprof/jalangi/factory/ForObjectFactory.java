@@ -23,9 +23,10 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.LoopEventHandler;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 public class ForObjectFactory extends AbstractFactory {
-    public ForObjectFactory(Object jalangiAnalysis, DynamicObject pre) {
+    public ForObjectFactory(Object jalangiAnalysis, JSDynamicObject pre) {
         super("forObject", jalangiAnalysis, pre, null);
     }
 

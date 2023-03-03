@@ -36,6 +36,7 @@ import ch.usi.inf.nodeprof.ProfiledTagEnum;
 import ch.usi.inf.nodeprof.jalangi.JalangiAnalysis;
 import ch.usi.inf.nodeprof.utils.Logger;
 import ch.usi.inf.nodeprof.utils.SourceMapping;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 public class AnalysisFilterJS extends AnalysisFilterBase {
     private final TruffleObject jsPredicateFunc;
@@ -99,8 +100,8 @@ public class AnalysisFilterJS extends AnalysisFilterBase {
             try {
                 Object ret = InteropLibrary.getFactory().getUncached().execute(jsPredicateFunc, SourceMapping.getJSObjectForSource(source));
                 if (JSArray.isJSArray(ret)) {
-                    include = JSAbstractArray.arrayGetLength((DynamicObject) ret) > 0;
-                    includeTags = mapToTags(JSAbstractArray.toArray((DynamicObject) ret));
+                    include = JSAbstractArray.arrayGetLength((JSDynamicObject) ret) > 0;
+                    includeTags = mapToTags(JSAbstractArray.toArray((JSDynamicObject) ret));
                 } else {
                     include = JSRuntime.toBoolean(ret);
                 }

@@ -31,6 +31,7 @@ import com.oracle.truffle.js.runtime.GraalJSException;
 import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
 import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
 
 import java.net.URI;
@@ -40,8 +41,8 @@ import java.util.Objects;
 public class InvokeFactory extends AbstractFactory {
     private final ProfiledTagEnum tag; // can be INVOKE or NEW
 
-    public InvokeFactory(Object jalangiAnalysis, ProfiledTagEnum tag, DynamicObject pre,
-                         DynamicObject post, DynamicObject onInput, DynamicObject onException) {
+    public InvokeFactory(Object jalangiAnalysis, ProfiledTagEnum tag, JSDynamicObject pre,
+                         JSDynamicObject post, JSDynamicObject onInput, JSDynamicObject onException) {
         super("invokeFun", jalangiAnalysis, pre, post, onInput, onException);
         this.tag = tag;
     }
@@ -112,7 +113,7 @@ public class InvokeFactory extends AbstractFactory {
                 if (onException == null) return null;
 
                 Object function = inputs.length >= this.getOffSet() - 1 ? inputs[this.getOffSet() - 1] : null;
-                Object jsErrorObject = exception instanceof GraalJSException ? ((GraalJSException) exception).getErrorObjectEager() : null; // get it eager, else it is null --> check performance implications
+                Object jsErrorObject = exception instanceof GraalJSException ? ((GraalJSException) exception).getErrorObject() : null; // get it eager, else it is null --> check performance implications
                 return cbNode.onExceptionCall(this, jalangiAnalysis, onException, getSourceIID(), jsErrorObject != null ? jsErrorObject : Undefined.instance, function != null ? function : Undefined.instance);
             }
         };

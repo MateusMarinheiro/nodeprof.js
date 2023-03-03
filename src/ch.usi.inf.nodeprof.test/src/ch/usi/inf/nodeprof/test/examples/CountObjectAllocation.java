@@ -37,6 +37,7 @@ import ch.usi.inf.nodeprof.test.examples.report.ReportEntryNodeGen;
 import ch.usi.inf.nodeprof.test.examples.report.SimpleCounterReport;
 import ch.usi.inf.nodeprof.utils.GlobalObjectCache;
 import ch.usi.inf.nodeprof.utils.Logger;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 public class CountObjectAllocation extends TestableNodeProfAnalysis {
 
@@ -76,7 +77,7 @@ public class CountObjectAllocation extends TestableNodeProfAnalysis {
                             addDebugEvent("OBJ-NEW", getSourceIID(), tag);
                             report.incre();
                         } else {
-                            Object constructor = GlobalObjectCache.getInstance().getArrayConstructor((DynamicObject) getFunction(inputs));
+                            Object constructor = GlobalObjectCache.getInstance().getArrayConstructor((JSDynamicObject) getFunction(inputs));
                             if (getFunction(inputs) == constructor) {
                                 addDebugEvent("OBJ-ARRAY", getSourceIID(), tag);
                                 SimpleCounterReport report = (SimpleCounterReport) (getReport.execute(this.getSourceIID()));

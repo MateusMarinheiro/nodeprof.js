@@ -20,7 +20,6 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.InstrumentableNode;
@@ -33,6 +32,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
 
 import ch.usi.inf.nodeprof.utils.GlobalConfiguration;
@@ -46,18 +46,19 @@ import static com.oracle.truffle.js.runtime.Strings.REQUIRE_PROPERTY_NAME;
  */
 public abstract class BaseEventHandlerNode extends Node {
     protected final EventContext context;
-    @CompilationFinal
-    private FrameSlot returnSlot;
+//    @CompilationFinal
+//    private FrameSlot returnSlot;
     @CompilationFinal
     private boolean noReturnSlot = false;
     @CompilationFinal
     private boolean deactivated = false;
 
     public Object getReturnValueFromFrameOrDefault(VirtualFrame frame, Object defaultValue) {
+        // ToDo - find a way to nicely extract return slot; as it is not needed right now for our analysis it's not a problem
         // cache the frame slot for the return value
-        if (returnSlot == null && !noReturnSlot) {
+/*        if (returnSlot == null && !noReturnSlot) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            returnSlot = frame.getFrameDescriptor().findFrameSlot("<return>");
+//            returnSlot = frame.getFrameDescriptor().findFrameSlot("<return>");
             if (returnSlot == null) {
                 Logger.warning("Could not find <return> slot");
                 noReturnSlot = true;
@@ -65,8 +66,9 @@ public abstract class BaseEventHandlerNode extends Node {
         }
         if (noReturnSlot) {
             return defaultValue;
-        }
-        return frame.getValue(returnSlot);
+        }*/
+        return defaultValue;
+//        return frame.getValue(returnSlot);
     }
 
     /**
@@ -349,7 +351,7 @@ public abstract class BaseEventHandlerNode extends Node {
             return false;
         }
         if (JSFunction.isJSFunction(args[3])) {
-            return REQUIRE_PROPERTY_NAME.equals(JSFunction.getName((DynamicObject) args[3]));
+            return REQUIRE_PROPERTY_NAME.equals(JSFunction.getName((JSDynamicObject) args[3]));
         }
         return false;
     }

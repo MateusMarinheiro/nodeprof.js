@@ -23,6 +23,7 @@ import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.js.runtime.Strings;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
 
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
@@ -34,7 +35,7 @@ public class DeclareFactory extends AbstractFactory {
 
 
     @TruffleBoundary
-    public DeclareFactory(Object jalangiAnalysis, DynamicObject pre, DynamicObject post) {
+    public DeclareFactory(Object jalangiAnalysis, JSDynamicObject pre, JSDynamicObject post) {
         super("declare", jalangiAnalysis, pre, post);
     }
 

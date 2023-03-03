@@ -23,11 +23,12 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.ElementReadEventHandler;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 public class GetElementFactory extends AbstractFactory {
 
-    public GetElementFactory(Object jalangiAnalysis, DynamicObject pre,
-                    DynamicObject post) {
+    public GetElementFactory(Object jalangiAnalysis, JSDynamicObject pre,
+                             JSDynamicObject post) {
         super("getField", jalangiAnalysis, pre, post);
     }
 

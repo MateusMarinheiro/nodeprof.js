@@ -17,7 +17,10 @@
 package ch.usi.inf.nodeprof.handlers;
 
 import com.oracle.truffle.api.instrumentation.EventContext;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.js.nodes.binary.InNode;
+import com.oracle.truffle.js.nodes.binary.InstanceofNode;
 import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.objects.Undefined;
 
@@ -32,9 +35,26 @@ public abstract class BinaryEventHandler extends BaseSingleTagEventHandler {
 
     public BinaryEventHandler(EventContext context) {
         super(context, ProfiledTagEnum.BINARY);
-        String internalOp = getAttributeInternalString("operator");
+        if (context.getInstrumentedNode() instanceof InstanceofNode) {
+
+        }
+        String internalOp = parseInternalOp();
         isLogic = internalOp.equals("||") || internalOp.equals("&&");
         op = Strings.fromJavaString(internalOp);
+    }
+
+    private String parseInternalOp() {
+        Node node = context.getInstrumentedNode();
+
+        String op;
+        if (node instanceof InstanceofNode) {
+            op = "instanceof";
+        } else if (node instanceof InNode) {
+            op = "in";
+        } else {
+            op = getAttributeInternalString("operator");
+        }
+        return op;
     }
 
     /**

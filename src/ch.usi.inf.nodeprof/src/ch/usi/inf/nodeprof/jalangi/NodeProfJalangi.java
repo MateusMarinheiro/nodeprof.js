@@ -36,6 +36,7 @@ import com.oracle.truffle.js.lang.JavaScriptLanguage;
 import com.oracle.truffle.js.nodes.JSTypes;
 import com.oracle.truffle.js.runtime.JSRuntime;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.Null;
 import com.oracle.truffle.js.runtime.objects.Undefined;
 
@@ -64,8 +65,8 @@ public class NodeProfJalangi extends NodeProfAnalysis {
         Source src = Source.newBuilder(JavaScriptLanguage.ID, "(1,eval)('this').__jalangiAdapter = adapterVar; (1,eval)('this')", "nodeprof").build();
         CallTarget bootstrap = this.getEnv().parse(src, "adapterVar");
         Object globalObject = bootstrap.call(new JalangiAdapter(this));
-        assert JSTypes.isDynamicObject(globalObject) : "bootstrap call did not return object";
-        GlobalObjectCache.getInstance().addDynamicObject((DynamicObject) globalObject);
+        assert JSDynamicObject.isJSDynamicObject(globalObject) : "bootstrap call did not return object";
+        GlobalObjectCache.getInstance().addDynamicObject((JSDynamicObject) globalObject);
         return null;
     }
 

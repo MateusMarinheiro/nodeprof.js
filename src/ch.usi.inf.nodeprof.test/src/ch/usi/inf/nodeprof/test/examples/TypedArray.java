@@ -46,6 +46,7 @@ import ch.usi.inf.nodeprof.utils.GlobalConfiguration;
 import ch.usi.inf.nodeprof.utils.GlobalObjectCache;
 import ch.usi.inf.nodeprof.utils.Logger;
 import ch.usi.inf.nodeprof.utils.SourceMapping;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 public class TypedArray extends TestableNodeProfAnalysis {
     private final ReportDB db = new ReportDB();
@@ -130,7 +131,7 @@ public class TypedArray extends TestableNodeProfAnalysis {
                                     Object result, Object[] inputs) {
                         Object funcObj = getFunction(inputs);
                         if (funcObj instanceof DynamicObject) {
-                            Object constructor = GlobalObjectCache.getInstance().getArrayConstructor((DynamicObject) funcObj);
+                            Object constructor = GlobalObjectCache.getInstance().getArrayConstructor((JSDynamicObject) funcObj);
                             if (funcObj == constructor) {
                                 trackAllocation(result, getSourceIID());
                                 addDebugEvent("TA_ARRAY_ALLOC", getSourceIID(), tag);
