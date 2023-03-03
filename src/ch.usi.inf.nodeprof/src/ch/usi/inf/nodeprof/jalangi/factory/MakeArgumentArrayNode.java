@@ -26,6 +26,7 @@ import com.oracle.truffle.js.runtime.builtins.JSArray;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 import ch.usi.inf.nodeprof.utils.GlobalObjectCache;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 /**
  * create a JS array including the arguments for invoke/functionEnter

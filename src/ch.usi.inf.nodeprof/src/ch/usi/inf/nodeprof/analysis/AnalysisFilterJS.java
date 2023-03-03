@@ -36,6 +36,7 @@ import ch.usi.inf.nodeprof.ProfiledTagEnum;
 import ch.usi.inf.nodeprof.jalangi.JalangiAnalysis;
 import ch.usi.inf.nodeprof.utils.Logger;
 import ch.usi.inf.nodeprof.utils.SourceMapping;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 public class AnalysisFilterJS extends AnalysisFilterBase {
     private final TruffleObject jsPredicateFunc;

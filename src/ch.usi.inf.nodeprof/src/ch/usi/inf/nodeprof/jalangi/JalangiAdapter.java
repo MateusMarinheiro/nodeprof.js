@@ -20,6 +20,9 @@ import static ch.usi.inf.nodeprof.utils.ObjectHelper.setConfigProperty;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.js.runtime.Strings;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionValues;
 
@@ -144,7 +147,7 @@ public class JalangiAdapter implements TruffleObject {
     private Object getConfig() {
         JSContext ctx = GlobalObjectCache.getInstance().getJSContext();
         JSRealm realm = JSRealm.get(null);
-        JSObject obj = JSOrdinary.create(ctx, realm);
+        JSDynamicObject obj = JSOrdinary.create(ctx, realm);
         OptionValues opts = this.getNodeProfJalangi().getEnv().getOptions();
         for (OptionDescriptor o : NodeProfCLI.ods) {
             String shortKey = o.getName().replace("nodeprof.", "");

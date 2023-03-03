@@ -28,13 +28,14 @@ import com.oracle.truffle.api.object.DynamicObject;
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.PropertyReadEventHandler;
 import ch.usi.inf.nodeprof.handlers.VarReadEventHandler;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 public class ReadFactory extends AbstractFactory {
 
     private final boolean isProperty;
 
     public ReadFactory(Object jalangiAnalysis, JSDynamicObject post,
-                    boolean isProperty) {
+                       boolean isProperty) {
         super("read", jalangiAnalysis, null, post);
         this.isProperty = isProperty;
     }

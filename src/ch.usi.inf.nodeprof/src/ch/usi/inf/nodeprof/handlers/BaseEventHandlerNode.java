@@ -36,6 +36,7 @@ import com.oracle.truffle.js.runtime.JSFrameUtil;
 import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
 
 import ch.usi.inf.nodeprof.utils.GlobalConfiguration;
@@ -47,27 +48,29 @@ import ch.usi.inf.nodeprof.utils.SourceMapping;
  */
 public abstract class BaseEventHandlerNode extends Node {
     protected final EventContext context;
-    @CompilationFinal
-    private FrameSlot returnSlot;
+//    @CompilationFinal
+//    private FrameSlot returnSlot;
     @CompilationFinal
     private boolean noReturnSlot = false;
     @CompilationFinal
     private boolean deactivated = false;
 
     public Object getReturnValueFromFrameOrDefault(VirtualFrame frame, Object defaultValue) {
+        // ToDo - find a way to nicely extract return slot; as it is not needed right now for our analysis it's not a problem
         // cache the frame slot for the return value
-        if (returnSlot == -1 && !noReturnSlot) {
+/*        if (returnSlot == null && !noReturnSlot) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            returnSlot = JSFrameUtil.findOptionalFrameSlotIndex(frame.getFrameDescriptor(), "<return>").orElse(-1);
-            if (returnSlot == -1) {
+//            returnSlot = frame.getFrameDescriptor().findFrameSlot("<return>");
+            if (returnSlot == null) {
                 Logger.warning("Could not find <return> slot");
                 noReturnSlot = true;
             }
         }
         if (noReturnSlot) {
             return defaultValue;
-        }
-        return frame.getValue(returnSlot);
+        }*/
+        return defaultValue;
+//        return frame.getValue(returnSlot);
     }
 
     /**
@@ -351,6 +354,7 @@ public abstract class BaseEventHandlerNode extends Node {
             return false;
         }
         if (JSFunction.isJSFunction(args[3])) {
+            return REQUIRE_PROPERTY_NAME.equals(JSFunction.getName((JSDynamicObject) args[3]));
             return REQUIRE_PROPERTY_NAME.equals(JSFunction.getName((JSDynamicObject) args[3]));
         }
         return false;

@@ -76,6 +76,7 @@ import ch.usi.inf.nodeprof.jalangi.factory.WriteFactory;
 import ch.usi.inf.nodeprof.utils.GlobalConfiguration;
 import ch.usi.inf.nodeprof.utils.GlobalObjectCache;
 import ch.usi.inf.nodeprof.utils.Logger;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 /**
  * Java representation of the Jalangi analysis object created in Jalangi ChainedAnalysisNoCheck

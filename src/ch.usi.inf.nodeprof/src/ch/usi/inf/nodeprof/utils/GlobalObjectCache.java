@@ -23,6 +23,7 @@ import com.oracle.truffle.js.runtime.JSContext;
 import com.oracle.truffle.js.runtime.JSRealm;
 import com.oracle.truffle.js.runtime.builtins.JSOrdinary;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.JSObject;
 
 /**
@@ -55,7 +56,7 @@ public class GlobalObjectCache extends Node {
         return global;
     }
 
-    public JSDynamicObject getArrayConstructor(JSDynamicObject option) {
+    public DynamicObject getArrayConstructor(JSDynamicObject option) {
         if (jscontext == null) {
             addDynamicObject(option);
         }
@@ -73,6 +74,7 @@ public class GlobalObjectCache extends Node {
      *
      */
     public JSContext getJSContext(JSDynamicObject object) {
+    public JSContext getJSContext(JSDynamicObject object) {
         if (jscontext == null) {
             addDynamicObject(object);
         }
@@ -82,6 +84,7 @@ public class GlobalObjectCache extends Node {
     /**
      * @param someObj a dynamic object which could tell us the jsContext information
      */
+    public void addDynamicObject(JSDynamicObject someObj) {
     public void addDynamicObject(JSDynamicObject someObj) {
         if (jscontext == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -99,6 +102,8 @@ public class GlobalObjectCache extends Node {
      * @param someObj an object which could tell us the jsContext information
      */
     public void addObject(Object someObj) {
+        if (someObj instanceof JSDynamicObject) {
+            addDynamicObject((JSDynamicObject) someObj);
         if (someObj instanceof JSDynamicObject) {
             addDynamicObject((JSDynamicObject) someObj);
         }

@@ -37,6 +37,7 @@ import ch.usi.inf.nodeprof.test.examples.report.ReportEntryNodeGen;
 import ch.usi.inf.nodeprof.test.examples.report.SimpleCounterReport;
 import ch.usi.inf.nodeprof.utils.GlobalObjectCache;
 import ch.usi.inf.nodeprof.utils.Logger;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 public class CountObjectAllocation extends TestableNodeProfAnalysis {
 

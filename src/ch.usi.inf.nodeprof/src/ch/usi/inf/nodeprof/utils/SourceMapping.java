@@ -35,6 +35,7 @@ import com.oracle.truffle.js.runtime.JSRealm;
 import com.oracle.truffle.js.runtime.builtins.JSArray;
 import com.oracle.truffle.js.runtime.builtins.JSOrdinary;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
 
 public abstract class SourceMapping {
@@ -110,14 +111,14 @@ public abstract class SourceMapping {
         JSContext ctx = GlobalObjectCache.getInstance().getJSContext();
         JSRealm realm = JSRealm.get(null);
         Source source = section.getSource();
-        var o = getJSObjectForSource(source);
+        JSDynamicObject o = getJSObjectForSource(source);
 
-        var range = JSArray.createConstant(ctx, realm, new Object[]{section.getCharIndex(), section.getCharEndIndex()});
+        JSDynamicObject range = JSArray.createConstant(ctx, realm, new Object[]{section.getCharIndex(), section.getCharEndIndex()});
         setConfigProperty(o, "range", range);
 
-        var loc = JSOrdinary.create(ctx, realm);
-        var start = JSOrdinary.create(ctx, realm);
-        var end = JSOrdinary.create(ctx, realm);
+        JSDynamicObject loc = JSOrdinary.create(ctx, realm);
+        JSDynamicObject start = JSOrdinary.create(ctx, realm);
+        JSDynamicObject end = JSOrdinary.create(ctx, realm);
         setConfigProperty(start, "line", section.getStartLine());
         setConfigProperty(start, "column", section.getStartColumn());
         setConfigProperty(end, "line", section.getEndLine());
@@ -133,12 +134,13 @@ public abstract class SourceMapping {
 
     @TruffleBoundary
     public static JSDynamicObject getJSObjectForSource(Source source) {
+    public static JSDynamicObject getJSObjectForSource(Source source) {
         if (source == null) {
             return Undefined.instance;
         }
         JSContext ctx = GlobalObjectCache.getInstance().getJSContext();
         JSRealm realm = JSRealm.get(null);
-        var o = JSOrdinary.create(ctx, realm);
+        JSDynamicObject o = JSOrdinary.create(ctx, realm);
         String srcName = source.getName();
         if (isEval(source)) {
             String evalSrc = innerMostEvalSource(source.getName());

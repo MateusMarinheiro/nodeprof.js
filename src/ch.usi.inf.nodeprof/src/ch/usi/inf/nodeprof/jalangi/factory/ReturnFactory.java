@@ -34,11 +34,12 @@ public class ReturnFactory extends AbstractFactory {
     @Override
     public BaseEventHandlerNode create(EventContext context) {
         return new CFBranchEventHandler(context) {
-            @Child CallbackNode cbNode = new CallbackNode();
+            @Child
+            CallbackNode cbNode = new CallbackNode();
 
             @Override
             public Object executePre(VirtualFrame frame,
-                            Object[] inputs) throws InteropException {
+                                     Object[] inputs) throws InteropException {
                 if (pre != null && isReturnNode()) {
                     return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), (inputs == null || inputs.length == 0) ? Undefined.instance : inputs[0]);
                 }
@@ -52,7 +53,7 @@ public class ReturnFactory extends AbstractFactory {
                     if (inputs.length == 0) {
                         Object returnExceptionValue = ((ReturnException) exception).getResult();
                         cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(),
-                                        (returnExceptionValue == null) ? getReturnValueFromFrameOrDefault(frame, Undefined.instance) : ((ReturnException) exception).getResult());
+                                (returnExceptionValue == null) ? getReturnValueFromFrameOrDefault(frame, Undefined.instance) : ((ReturnException) exception).getResult());
 
                     }
                 }

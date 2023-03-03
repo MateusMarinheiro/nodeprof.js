@@ -25,6 +25,7 @@ import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import ch.usi.inf.nodeprof.ProfiledTagEnum;
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.ExpressionEventHandler;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 public class StatementFactory extends AbstractFactory {
 

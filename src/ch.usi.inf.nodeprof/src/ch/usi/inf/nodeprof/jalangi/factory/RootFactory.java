@@ -16,7 +16,9 @@
  * *****************************************************************************/
 package ch.usi.inf.nodeprof.jalangi.factory;
 
-import com.oracle.truffle.api.frame.FrameSlot;
+import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
+import ch.usi.inf.nodeprof.handlers.FunctionRootEventHandler;
+import ch.usi.inf.nodeprof.utils.Logger;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.TruffleInstrument;
@@ -25,10 +27,6 @@ import com.oracle.truffle.js.nodes.control.ReturnException;
 import com.oracle.truffle.js.nodes.control.YieldException;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
-
-import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
-import ch.usi.inf.nodeprof.handlers.FunctionRootEventHandler;
-import ch.usi.inf.nodeprof.utils.Logger;
 
 public class RootFactory extends AbstractFactory {
 

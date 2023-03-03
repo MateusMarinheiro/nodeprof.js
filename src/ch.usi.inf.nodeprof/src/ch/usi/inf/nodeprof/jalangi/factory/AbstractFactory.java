@@ -52,10 +52,10 @@ public abstract class AbstractFactory implements
     // the jalangi analysis object
     protected final Object jalangiAnalysis;
 
-    protected final DynamicObject pre;
-    protected final DynamicObject post;
-    protected final DynamicObject onInput;
-    protected final DynamicObject onException;
+    protected final JSDynamicObject pre;
+    protected final JSDynamicObject post;
+    protected final JSDynamicObject onInput;
+    protected final JSDynamicObject onException;
 
     protected final String jalangiCallback;
 
@@ -113,8 +113,8 @@ public abstract class AbstractFactory implements
         }
     }
 
-    public AbstractFactory(String jalangiCallback, Object jalangiAnalysis, DynamicObject pre,
-                           DynamicObject post, DynamicObject onInput, DynamicObject onException) {
+    public AbstractFactory(String jalangiCallback, Object jalangiAnalysis, JSDynamicObject pre,
+                           JSDynamicObject post, JSDynamicObject onInput, JSDynamicObject onException) {
         this.jalangiCallback = jalangiCallback;
         this.jalangiAnalysis = jalangiAnalysis;
         this.pre = pre;
@@ -123,8 +123,8 @@ public abstract class AbstractFactory implements
         this.onException = onException;
     }
 
-    public AbstractFactory(String jalangiCallback, Object jalangiAnalysis, DynamicObject pre,
-                           DynamicObject post) {
+    public AbstractFactory(String jalangiCallback, Object jalangiAnalysis, JSDynamicObject pre,
+                           JSDynamicObject post) {
         this(jalangiCallback, jalangiAnalysis, pre, post, null, null);
     }
 

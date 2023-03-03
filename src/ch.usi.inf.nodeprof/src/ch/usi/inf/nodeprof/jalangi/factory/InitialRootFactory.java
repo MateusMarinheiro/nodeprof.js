@@ -31,9 +31,13 @@ import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.FunctionRootEventHandler;
 import ch.usi.inf.nodeprof.utils.SourceMapping;
+import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.js.runtime.Strings;
+import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 public class InitialRootFactory extends AbstractFactory {
 
+    public InitialRootFactory(Object jalangiAnalysis, JSDynamicObject post) {
     public InitialRootFactory(Object jalangiAnalysis, JSDynamicObject post) {
         super("newSource", jalangiAnalysis, null, post);
     }

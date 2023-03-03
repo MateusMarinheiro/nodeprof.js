@@ -20,6 +20,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
 
@@ -30,6 +31,8 @@ public class EvalFactory extends AbstractFactory {
 
     private final boolean isInvoke;
 
+    public EvalFactory(Object jalangiAnalysis, JSDynamicObject pre,
+                       JSDynamicObject post, boolean isInvoke) {
     public EvalFactory(Object jalangiAnalysis, JSDynamicObject pre,
                        JSDynamicObject post, boolean isInvoke) {
         super("eval", jalangiAnalysis, pre, post);
