@@ -41,7 +41,7 @@ public class ConditionalFactory extends AbstractFactory {
             @Override
             public Object executePost(VirtualFrame frame, Object result,
                                       Object[] inputs) throws InteropException {
-                return post != null
+                return post != null && isConditional()
                         ? cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result))
                         : null;
             }
