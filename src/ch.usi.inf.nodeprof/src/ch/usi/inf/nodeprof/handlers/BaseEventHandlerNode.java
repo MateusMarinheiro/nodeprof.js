@@ -168,8 +168,14 @@ public abstract class BaseEventHandlerNode extends Node {
     @TruffleBoundary
     public Object getAttribute(String key) {
         Object result = null;
+
+        Object nodeObject = ((InstrumentableNode) context.getInstrumentedNode()).getNodeObject();
+        if (nodeObject == null) {
+            return null;
+        }
+
         try {
-            result = InteropLibrary.getFactory().getUncached().readMember(((InstrumentableNode) context.getInstrumentedNode()).getNodeObject(), key);
+            result = InteropLibrary.getFactory().getUncached().readMember(nodeObject, key);
         } catch (Exception e) {
             reportAttributeMissingError(key, e);
         }
