@@ -51,6 +51,8 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
      * </p>
      */
     protected static Object returnInput = null;
+    protected static int waitingForUnwind = 0;
+
     @Child
     BaseEventHandlerNode child;
     int hasOnEnter = 0;
@@ -97,18 +99,15 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
             return;
         }
 
-        Object newResult = null;
         Object input = returnInput != null ? returnInput : inputValue;
 
+        Object newResult = null;
         if (child.expectedNumInputs() < 0 || inputIndex < child.expectedNumInputs()) {
             // save input only necessary
             saveInputValue(frame, inputIndex, input);
 
-//            System.out.println("Input " + input + " " + frame);
-//            System.out.println("Saved Inputs " + Arrays.toString(getSavedInputValues(frame)));
-
             try {
-                this.child.executeOnInput(frame, inputIndex, input);
+                newResult = this.child.executeOnInput(frame, inputIndex, input);
             } catch (Throwable e) {
                 reportError(null, e);
             }
@@ -116,12 +115,9 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
 
         if (this.child.isLastIndex(getInputCount(), inputIndex)) {
             this.cb.preHitCount++;
-//            Object newResult = null;
             try {
-                // this does not work as expected -> it just replaces the last input
-                /*newResult = */
                 this.child.executePre(frame, child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null);
-//                System.out.println("Pre " + this.child + " " + newResult);
+
                 // allow for handler changes after executePre/Post
                 checkHandlerChanges();
             } catch (Throwable e) {
@@ -129,10 +125,15 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
             }
         }
 
-//        if (newResult != null) {
-//            CompilerDirectives.transferToInterpreter();
-//            throw context.createUnwind(newResult);
-//        }
+        /* Note that this won't always work because onUnwind of a child is caught after onInputValue is called
+         * That means that if a child node unwinds it will stop the unwinding and onUnwind of this EventNode will never be called
+         * However, it can still be useful in cases in which it is known that no child will unwind
+         */
+        if (newResult != null) {
+            CompilerDirectives.transferToInterpreter();
+//            returnInput = newResult;
+            throw context.createUnwind(newResult);
+        }
     }
 
     @Override
@@ -188,8 +189,6 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
                 inputs = child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null;
                 newResult = this.child.executePost(frame, result, inputs);
 
-//                System.out.println("Return: " + frame);
-
                 // allow for handler changes after executePre/Post
                 checkHandlerChanges();
             }
@@ -198,19 +197,17 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         }
 
         if (newResult != null) {
-            returnInput = newResult;
             CompilerDirectives.transferToInterpreterAndInvalidate();
+            returnInput = newResult;
             throw context.createUnwind(newResult);
         }
     }
 
     @Override
     protected Object onUnwind(VirtualFrame frame, Object info) {
-//        hasOnEnter = 0;
-//        System.out.println("Unwind: " + info);
+        hasOnEnter = 0;
         // ToDo - some debug output?
         returnInput = null;
-//        System.out.println("Unwind Node: " + frame);
         return info;
     }
 

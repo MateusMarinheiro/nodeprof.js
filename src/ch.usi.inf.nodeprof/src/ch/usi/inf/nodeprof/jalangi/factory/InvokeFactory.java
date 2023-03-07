@@ -56,8 +56,8 @@ public class InvokeFactory extends AbstractFactory {
             @Child
             CallbackNode cbNode = new CallbackNode();
 
-            // cache the function to pass on input to not have to fetch all inputs every time
-            Object function = null;
+            // cache the function receiver pass on input to not have to fetch all inputs every time
+            Object receiver = null;
 
             @Override
             public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
@@ -81,10 +81,17 @@ public class InvokeFactory extends AbstractFactory {
 
             @Override
             public Object executeOnInput(VirtualFrame frame, int inputIndex, Object input) throws InteropException {
+                if (onInput == null) return null;
+
+                // set receiver
+                if (inputIndex == 0) {
+                    this.receiver = !isNew() ? input : Undefined.instance;
+                    return null;
+                }
+
                 // only call input call when the function is read
                 // additionally check if input is actual function - in invalid code the function could be e.g. undefined
-                if (onInput == null || inputIndex != getOffSet() - 1 || !(input instanceof JSFunctionObject))
-                    return null;
+                if (inputIndex != getOffSet() - 1 || !(input instanceof JSFunctionObject)) return null;
 
                 Source src = ((JSFunctionObject) input).getSourceLocation().getSource();
                 boolean isBuiltin = src.isInternal();
@@ -102,6 +109,7 @@ public class InvokeFactory extends AbstractFactory {
                         onInput,
                         getSourceIID(),
                         input,
+                        this.receiver,
                         nodeModule != null ? Strings.fromJavaString(nodeModule) : Undefined.instance,
                         isBuiltin,
                         inputIndex
