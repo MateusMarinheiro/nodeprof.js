@@ -21,6 +21,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.impl.DefaultCallTarget;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.interop.InteropException;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import ch.usi.inf.nodeprof.ProfiledTagEnum;
@@ -30,9 +31,12 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.js.runtime.GraalJSException;
 import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
+import com.oracle.truffle.js.runtime.builtins.JSFunctionData;
 import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
+import com.oracle.truffle.js.runtime.interop.InteropBoundFunction;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -57,13 +61,24 @@ public class InvokeFactory extends AbstractFactory {
             CallbackNode cbNode = new CallbackNode();
 
             // cache the function receiver pass on input to not have to fetch all inputs every time
-            Object receiver = null;
+            Object receiver = Undefined.instance;
 
             @Override
             public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
                 if (pre != null) {
+                    Object funInput = getFunction(inputs);
+                    Object receiver = getReceiver(inputs);
+
+                    JSFunctionObject fun = null;
+                    if (funInput instanceof JSFunctionObject) {
+                        fun = (JSFunctionObject) funInput;
+                    } else if (funInput instanceof InteropBoundFunction) {
+                        fun = ((InteropBoundFunction) funInput).getFunction();
+                        receiver = ((InteropBoundFunction) funInput).getReceiver();
+                    }
+                    Source src = fun != null ? fun.getSourceLocation().getSource() : null;
                     // TODO Jalangi's function iid/sid are set to be 0/0
-                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getFunction(inputs), getReceiver(inputs), makeArgs.executeArguments(inputs), isNew(), isInvoke(), 0, 0);
+                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), fun, receiver, makeArgs.executeArguments(inputs), isNew(), isInvoke(), getScopeOf(src), 0, 0);
                 }
                 return null;
             }
@@ -81,26 +96,29 @@ public class InvokeFactory extends AbstractFactory {
 
             @Override
             public Object executeOnInput(VirtualFrame frame, int inputIndex, Object input) throws InteropException {
+
                 if (onInput == null) return null;
 
                 // set receiver
-                if (inputIndex == 0) {
-                    this.receiver = !isNew() ? input : Undefined.instance;
+                if (inputIndex == 0 && !isNew()) {
+                    this.receiver = input;
                     return null;
                 }
 
                 // only call input call when the function is read
-                // additionally check if input is actual function - in invalid code the function could be e.g. undefined
-                if (inputIndex != getOffSet() - 1 || !(input instanceof JSFunctionObject)) return null;
+                if (inputIndex != getOffSet() - 1) return null;
 
-                Source src = ((JSFunctionObject) input).getSourceLocation().getSource();
-                boolean isBuiltin = src.isInternal();
-
-                // get node module from src uri
-                String nodeModule = null;
-                if (!isBuiltin) {
-                    String[] uriParts = src.getURI().toString().split("/");
-                    nodeModule = uriParts.length > 1 && uriParts[1].startsWith("node:") ? uriParts[1].split(":")[1] : null;
+                /* Most of the time the function object is a JSFunctionObject, but sometimes it's an InteropBoundFunction
+                   I'm not sure when/why this is the case - it differs sometime even for the same program
+                   ToDo - look into this */
+                JSFunctionObject fun;
+                if (input instanceof JSFunctionObject) {
+                    fun = (JSFunctionObject) input;
+                } else if (input instanceof InteropBoundFunction) {
+                    fun = ((InteropBoundFunction) input).getFunction();
+                    this.receiver = ((InteropBoundFunction) input).getReceiver();
+                } else {
+                    return null;
                 }
 
                 return cbNode.onInputCall(
@@ -108,11 +126,12 @@ public class InvokeFactory extends AbstractFactory {
                         jalangiAnalysis,
                         onInput,
                         getSourceIID(),
-                        input,
+                        fun,
                         this.receiver,
-                        nodeModule != null ? Strings.fromJavaString(nodeModule) : Undefined.instance,
-                        isBuiltin,
-                        inputIndex
+                        inputIndex,
+                        isNew(),
+                        fun.getFunctionData().isAsync(),
+                        getScopeOf(fun.getSourceLocation().getSource())
                 );
             }
 

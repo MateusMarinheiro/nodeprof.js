@@ -46,7 +46,7 @@ import static com.oracle.truffle.js.runtime.Strings.REQUIRE_PROPERTY_NAME;
  */
 public abstract class BaseEventHandlerNode extends Node {
     protected final EventContext context;
-//    @CompilationFinal
+    //    @CompilationFinal
 //    private FrameSlot returnSlot;
     @CompilationFinal
     private boolean noReturnSlot = false;
@@ -301,19 +301,17 @@ public abstract class BaseEventHandlerNode extends Node {
 
     /**
      * Get context JavaScript scope object in the form of a location string
+     *
      * @return string in the form of
-     *  <builtin> for builtin scope
-     *  node:[module] for internal node.js modules
-     *  node_modules/[pathToModule] for dependencies
-     *  file://[appFilePath] for app level scope
-     *  Undefined
+     * <builtin> for builtin scope
+     * node:[module] for internal node.js modules
+     * node_modules/[pathToModule] for dependencies
+     * file://[appFilePath] for app level scope
+     * Undefined
      */
-    public Object getScope() {
-        if (context.getInstrumentedNode() == null) {
-            return Undefined.instance;
-        }
+    public Object getScopeOf(Source src) {
+        if (src == null) return Undefined.instance;
 
-        Source src = context.getInstrumentedNode().getSourceSection().getSource();
         String scope = null;
         if (src.isInternal()) {
             scope = "<builtin>";
@@ -334,6 +332,11 @@ public abstract class BaseEventHandlerNode extends Node {
             }
         }
         return scope != null ? Strings.fromJavaString(scope) : Undefined.instance;
+    }
+
+    public Object getContextScope() {
+        Node node = context.getInstrumentedNode();
+        return node != null ? getScopeOf(node.getSourceSection().getSource()) : Undefined.instance;
     }
 
     /**
