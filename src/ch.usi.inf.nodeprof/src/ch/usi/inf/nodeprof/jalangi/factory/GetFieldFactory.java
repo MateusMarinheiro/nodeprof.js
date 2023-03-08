@@ -68,7 +68,7 @@ public class GetFieldFactory extends AbstractFactory {
                 if (post != null && !this.isGlobal(inputs)) {
                     // Only fetch scope when we have an undefine prop read -> this is specific to our case to improve performance
                     // To generalize remove
-                    Object scope = result == Undefined.instance ? getScope() : Undefined.instance;
+                    Object scope = result == Undefined.instance ? getContextScope() : Undefined.instance;
                     return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), convertResult(result), false, isOpAssign(), isMethodCall(), scope);
                 }
                 return null;
