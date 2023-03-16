@@ -140,6 +140,7 @@ public abstract class SourceMapping {
         JSRealm realm = JSRealm.get(null);
         JSDynamicObject o = JSOrdinary.create(ctx, realm);
         String srcName = source.getName();
+//        String srcName = source.getPath();
         if (isEval(source)) {
             String evalSrc = innerMostEvalSource(source.getName());
             if (evalSrc != null) {
@@ -151,7 +152,8 @@ public abstract class SourceMapping {
             // 'eval' property signals the source is an eval-string, it contains the full eval hint
             setConfigProperty(o, "eval", source.getName());
         }
-        setConfigProperty(o, "name", shortPath(srcName));
+//        setConfigProperty(o, "name", shortPath(srcName));
+        setConfigProperty(o, "name", srcName);
         setConfigProperty(o, "internal", isInternal(source));
         return o;
     }

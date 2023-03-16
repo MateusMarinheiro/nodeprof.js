@@ -33,6 +33,7 @@ import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
 import com.oracle.truffle.js.runtime.builtins.JSFunctionData;
 import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
+import com.oracle.truffle.js.runtime.builtins.JSProxyObject;
 import com.oracle.truffle.js.runtime.interop.InteropBoundFunction;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
@@ -69,16 +70,28 @@ public class InvokeFactory extends AbstractFactory {
                     Object funInput = getFunction(inputs);
                     Object receiver = getReceiver(inputs);
 
-                    JSFunctionObject fun = null;
+                    Object fun = null;
+
+                    Object proxy = Undefined.instance;
+
                     if (funInput instanceof JSFunctionObject) {
-                        fun = (JSFunctionObject) funInput;
+                        fun = funInput;
                     } else if (funInput instanceof InteropBoundFunction) {
                         fun = ((InteropBoundFunction) funInput).getFunction();
                         receiver = ((InteropBoundFunction) funInput).getReceiver();
+                    } else if (funInput instanceof JSProxyObject) {
+                        // if it is a proxy extract the target but also send the proxy itself
+                        // note that fun can again be a proxy object
+//                        do {
+                        fun = ((JSProxyObject) funInput).getProxyTarget();
+//                        } while (fun instanceof JSProxyObject);
+
+                        proxy = funInput;
                     }
-                    Source src = fun != null ? fun.getSourceLocation().getSource() : null;
+                    Source src = fun instanceof JSFunctionObject ? ((JSFunctionObject) fun).getSourceLocation().getSource() : null;
+
                     // TODO Jalangi's function iid/sid are set to be 0/0
-                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), fun, receiver, makeArgs.executeArguments(inputs), isNew(), isInvoke(), getScopeOf(src), 0, 0);
+                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), fun, receiver, makeArgs.executeArguments(inputs), isNew(), isInvoke(), getScopeOf(src), proxy, 0, 0);
                 }
                 return null;
             }
@@ -87,9 +100,26 @@ public class InvokeFactory extends AbstractFactory {
             public Object executePost(VirtualFrame frame, Object result,
                                       Object[] inputs) throws InteropException {
                 if (post != null) {
+                    Object funInput = getFunction(inputs);
+                    Object receiver = getReceiver(inputs);
+
+                    Object fun = null;
+
+                    Object proxy = Undefined.instance;
+
+                    if (funInput instanceof JSFunctionObject) {
+                        fun = funInput;
+                    } else if (funInput instanceof InteropBoundFunction) {
+                        fun = ((InteropBoundFunction) funInput).getFunction();
+                        receiver = ((InteropBoundFunction) funInput).getReceiver();
+                    } else if (funInput instanceof JSProxyObject) {
+                        fun = ((JSProxyObject) funInput).getProxyTarget();
+                        proxy = funInput;
+                    }
+                    Source src = fun instanceof JSFunctionObject ? ((JSFunctionObject) fun).getSourceLocation().getSource() : null;
                     // TODO Jalangi's function iid/sid are set to be 0/0
-                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getFunction(inputs), getReceiver(inputs), makeArgs.executeArguments(inputs), convertResult(result), isNew(),
-                            isInvoke(), 0, 0);
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), fun, receiver, makeArgs.executeArguments(inputs), convertResult(result), isNew(),
+                            isInvoke(), getScopeOf(src), 0, 0);
                 }
                 return null;
             }
@@ -111,6 +141,7 @@ public class InvokeFactory extends AbstractFactory {
                 /* Most of the time the function object is a JSFunctionObject, but sometimes it's an InteropBoundFunction
                    I'm not sure when/why this is the case - it differs sometime even for the same program
                    ToDo - look into this */
+
                 JSFunctionObject fun;
                 if (input instanceof JSFunctionObject) {
                     fun = (JSFunctionObject) input;
