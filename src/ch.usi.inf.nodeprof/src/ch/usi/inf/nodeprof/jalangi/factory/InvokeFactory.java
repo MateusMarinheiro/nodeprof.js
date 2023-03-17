@@ -30,12 +30,14 @@ import ch.usi.inf.nodeprof.handlers.FunctionCallEventHandler;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.js.runtime.GraalJSException;
 import com.oracle.truffle.js.runtime.Strings;
+import com.oracle.truffle.js.runtime.builtins.JSArray;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
 import com.oracle.truffle.js.runtime.builtins.JSFunctionData;
 import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
 import com.oracle.truffle.js.runtime.builtins.JSProxyObject;
 import com.oracle.truffle.js.runtime.interop.InteropBoundFunction;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
+import com.oracle.truffle.js.runtime.objects.JSOrdinaryObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 
@@ -170,9 +172,12 @@ public class InvokeFactory extends AbstractFactory {
             public Object executeExceptional(VirtualFrame frame, Throwable exception, Object[] inputs) throws InteropException {
                 if (onException == null) return null;
 
-                Object function = inputs.length >= this.getOffSet() - 1 ? inputs[this.getOffSet() - 1] : null;
+                // It is possible that function and receiver are not set (if e.g. receiver throws)
+                Object function = inputs.length >= this.getOffSet() && inputs[this.getOffSet() - 1] != null ? inputs[this.getOffSet() - 1] : Undefined.instance;
+                Object receiver = !this.isNew() && inputs.length > 0 && inputs[0] != null ? inputs[0] : Undefined.instance;
+                Object args = inputs.length >= this.getOffSet() ? makeArgs.executeArguments(inputs) : Undefined.instance;
                 Object jsErrorObject = exception instanceof GraalJSException ? ((GraalJSException) exception).getErrorObject() : null; // get it eager, else it is null --> check performance implications
-                return cbNode.onExceptionCall(this, jalangiAnalysis, onException, getSourceIID(), jsErrorObject != null ? jsErrorObject : Undefined.instance, function != null ? function : Undefined.instance);
+                return cbNode.onExceptionCall(this, jalangiAnalysis, onException, getSourceIID(), jsErrorObject != null ? jsErrorObject : Undefined.instance, function, receiver, args);
             }
         };
     }
