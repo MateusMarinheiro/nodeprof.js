@@ -35,6 +35,7 @@ import com.oracle.truffle.js.runtime.Strings;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class ProfilerExecutionEventNode extends ExecutionEventNode {
     protected final EventContext context;
@@ -102,8 +103,10 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         Object input = returnInput != null ? returnInput : inputValue;
 
         Object newResult = null;
+
         if (child.expectedNumInputs() < 0 || inputIndex < child.expectedNumInputs()) {
             // save input only necessary
+            // note that we save the original input and not the returned new result (this means that later callback (pre, post, exception) get the original input)
             saveInputValue(frame, inputIndex, input);
 
             try {
@@ -226,6 +229,9 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         Logger.error(context.getInstrumentedSourceSection(), this.cb + " inputs: " + (inputs == null ? "null" : inputs.length) + " exception: " + e.getMessage());
         if (inputs != null) {
             for (int i = 0; i < inputs.length; i++) {
+                if (inputs[i] == null) {
+                    System.out.println("what??????");
+                }
                 Logger.error(context.getInstrumentedSourceSection(),
                         "\targ[" + i + "]: " + inputs[i]);
             }
@@ -247,6 +253,13 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         try {
             if (hasOnEnter > 0) {
                 hasOnEnter--;
+
+                // it can be that one of the input threw an error
+                // thus the throwing and its following inputs where not saved and are null
+                if (inputs != null) {
+                    inputs = Arrays.stream(inputs).filter(Objects::nonNull).toArray();
+                }
+
                 this.cb.exceptionHitCount++;
                 if (exception instanceof ControlFlowException) {
                     // ToDo - look into this
