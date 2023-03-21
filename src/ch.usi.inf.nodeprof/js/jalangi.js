@@ -94,14 +94,44 @@ J$ = {};
             sandbox.adapter.onReady(analysis, filterConfig);
         }
     }
-    sandbox.endExecution = function () {
-        for (var i = 0; i < sandbox.analyses.length; i++) {
-            var analysis = sandbox.analyses[i];
-            if (analysis.endExecution && (typeof analysis.endExecution == 'function')) {
-                analysis.endExecution();
+
+    // sandbox.runAnalysis = async function () {
+    //     if (J$.startupPromises.length === 0) {
+    //         try {
+    //             require(process.argv[1]);
+    //             setImmediate(() => console.log('immediate'));
+    //             // process.nextTick(() => console.log('nextTick'));
+    //             J$.endExecution();
+    //         } catch (e) {
+    //             J$.endExecution(e);
+    //         }
+    //         // require('module').runMain();
+    //     } else {
+    //         Promise.all(J$.startupPromises).then(async () => {
+    //             require('module').runMain();
+    //         }, error => {
+    //             console.log('Analysis startup promise failed:', error);
+    //             process.exit(-1);
+    //         });
+    //     }
+    // }
+
+    sandbox.uncaughtException = function (err, origin) {
+        sandbox.analyses.forEach(analysis => {
+            if (analysis.uncaughtException && (typeof analysis.uncaughtException == 'function')) {
+                analysis.uncaughtException(err, origin);
             }
-        }
+        });
     }
+
+    sandbox.endExecution = function (code) {
+        sandbox.analyses.forEach(analysis => {
+            if (analysis.endExecution && (typeof analysis.endExecution == 'function')) {
+                analysis.endExecution(code);
+            }
+        });
+    }
+
     Object.defineProperty(sandbox, 'analysis', {
         get: function () {
             return sandbox.analyses;
@@ -256,7 +286,11 @@ process.on('SIGINT', function () {
     process.exit();
 });
 
-process.on('exit', function () {
+process.on('uncaughtException', function (err, origin) {
+    J$.uncaughtException(err, origin);
+});
+
+process.on('exit', function (code) {
     J$.endExecution();
 });
 
@@ -265,11 +299,11 @@ path = require('path');
 
 // jalangi.js [--analysis XXX]* [--initParam key:value]* [testFile [testArgs]*]
 function loadAnalysis() {
-    var arg0 = process.argv[0];
-    var i = 2; // start from 3rd arg: 0 => node, 1 => jalangi.js
-    var analyses = [];
-    var execPath;
-    var length = process.argv.length;
+    let arg0 = process.argv[0];
+    let i = 2; // start from 3rd arg: 0 => node, 1 => jalangi.js
+    let analysis = null;
+    let execPath;
+    const length = process.argv.length;
 
     // read global options
     const optStrings = ['--analysis', '--exec-path'];
@@ -280,7 +314,7 @@ function loadAnalysis() {
 
         switch (optString) {
             case '--analysis':
-                analyses.push(process.argv[i]);
+                analysis = process.argv[i];
                 break;
             case '--exec-path':
                 execPath = process.argv[i];
@@ -304,22 +338,23 @@ function loadAnalysis() {
         J$.initParams[key] = value;
     }
 
+    // load analyses
+    try {
+        analysis = require(path.resolve(analysis));
+        // if (typeof analysis !== 'function') {
+        //     throw 'Analysis does not export function';
+        // }
+    } catch (e) {
+        console.log('error while loading analysis %s', analysis);
+        console.log(e);
+        process.exit(-1);
+    }
+
     // the real program to run
     if (i === process.argv.length)
         throw 'no main program is given';
 
     process.argv[i] = path.resolve(process.argv[i]);
-
-    // load analyses
-    analyses.forEach(analysis => {
-        try {
-            require(path.resolve(analysis));
-        } catch (e) {
-            console.log('error while loading analysis %s', analysis);
-            console.log(e);
-            process.exit(-1);
-        }
-    });
 
     // remove the analysis part in the argv
     process.argv = process.argv.slice(i);
@@ -332,13 +367,18 @@ function loadAnalysis() {
 
     // put back the entry program
     process.argv.unshift(arg0);
+
+    // run analysis
+    // analysis();
 }
 
 loadAnalysis();
+
 if (J$.startupPromises.length === 0) {
+    // require(process.argv[1]);
     require('module').runMain();
 } else {
-    Promise.all(J$.startupPromises).then(() => {
+    Promise.all(J$.startupPromises).then(async () => {
         require('module').runMain();
     }, error => {
         console.log('Analysis startup promise failed:', error);

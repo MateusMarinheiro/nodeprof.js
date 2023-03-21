@@ -229,9 +229,6 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         Logger.error(context.getInstrumentedSourceSection(), this.cb + " inputs: " + (inputs == null ? "null" : inputs.length) + " exception: " + e.getMessage());
         if (inputs != null) {
             for (int i = 0; i < inputs.length; i++) {
-                if (inputs[i] == null) {
-                    System.out.println("what??????");
-                }
                 Logger.error(context.getInstrumentedSourceSection(),
                         "\targ[" + i + "]: " + inputs[i]);
             }
