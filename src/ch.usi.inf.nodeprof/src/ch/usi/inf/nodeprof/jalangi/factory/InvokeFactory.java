@@ -144,16 +144,14 @@ public class InvokeFactory extends AbstractFactory {
                    I'm not sure when/why this is the case - it differs sometime even for the same program
                    ToDo - look into this */
 
-                JSFunctionObject fun;
-                if (input instanceof JSFunctionObject) {
-                    fun = (JSFunctionObject) input;
-                } else if (input instanceof InteropBoundFunction) {
+                Object fun = input;
+                if (input instanceof InteropBoundFunction) {
                     fun = ((InteropBoundFunction) input).getFunction();
                     this.receiver = ((InteropBoundFunction) input).getReceiver();
-                } else {
-                    return null;
                 }
 
+                boolean isAsync = fun instanceof JSFunctionObject && ((JSFunctionObject) fun).getFunctionData().isAsync();
+                Object scope = fun instanceof JSFunctionObject ? getScopeOf(((JSFunctionObject) fun).getSourceLocation().getSource()) : Undefined.instance;
                 return cbNode.onInputCall(
                         this,
                         jalangiAnalysis,
@@ -163,8 +161,8 @@ public class InvokeFactory extends AbstractFactory {
                         this.receiver,
                         inputIndex,
                         isNew(),
-                        fun.getFunctionData().isAsync(),
-                        getScopeOf(fun.getSourceLocation().getSource())
+                        isAsync,
+                        scope
                 );
             }
 

@@ -29,8 +29,9 @@ public abstract class EvalEventHandler extends BaseSingleTagEventHandler {
         super(context, ProfiledTagEnum.EVAL);
     }
 
-    protected TruffleString getCode(Object[] inputs) {
-        return assertGetStringInput(1, inputs, "code");
+    protected Object getCode(Object[] inputs) {
+//        return assertGetStringInput(1, inputs, "code");
+        return assertGetInput(1, inputs, "code");
     }
 
 }
