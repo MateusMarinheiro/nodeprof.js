@@ -199,7 +199,7 @@ public class JalangiAnalysis {
                     newFactory);
             this.instrument.onCallback(
                     ProfiledTagEnum.EVAL,
-                    new EvalFactory(this.jsAnalysis, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"), true));
+                    new EvalFactory(this.jsAnalysis, callbacks.get("invokeFunPre"), callbacks.get("invokeFun"), callbacks.get("invokeFunStart"), true));
         }
 
         if (this.callbacks.containsKey("putFieldPre") || callbacks.containsKey("putField")) {
@@ -305,7 +305,7 @@ public class JalangiAnalysis {
         if (this.callbacks.containsKey("evalPre") || this.callbacks.containsKey("evalPost")) {
             this.instrument.onCallback(
                     ProfiledTagEnum.EVAL,
-                    new EvalFactory(this.jsAnalysis, callbacks.get("evalPre"), callbacks.get("evalPost"), false));
+                    new EvalFactory(this.jsAnalysis, callbacks.get("evalPre"), callbacks.get("evalPost"), null, false));
         }
 
         /*

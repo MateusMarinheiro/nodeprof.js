@@ -21,6 +21,9 @@ import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.js.runtime.Strings;
+import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
+import com.oracle.truffle.js.runtime.interop.InteropBoundFunction;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
 
@@ -32,16 +35,18 @@ public class EvalFactory extends AbstractFactory {
     private final boolean isInvoke;
 
     public EvalFactory(Object jalangiAnalysis, JSDynamicObject pre,
-                       JSDynamicObject post, boolean isInvoke) {
-        super("eval", jalangiAnalysis, pre, post);
+                       JSDynamicObject post, JSDynamicObject onInput, boolean isInvoke) {
+        super("eval", jalangiAnalysis, pre, post, onInput, null);
         this.isInvoke = isInvoke;
     }
 
     @Override
     public BaseEventHandlerNode create(EventContext context) {
         return new EvalEventHandler(context) {
-            @Child CallbackNode cbNode = new CallbackNode();
-            @Node.Child MakeArgumentArrayNode makeArgs = isInvoke ? (MakeArgumentArrayNodeGen.create(pre == null ? post : pre, 1, 0)) : null;
+            @Child
+            CallbackNode cbNode = new CallbackNode();
+            @Node.Child
+            MakeArgumentArrayNode makeArgs = isInvoke ? (MakeArgumentArrayNodeGen.create(pre == null ? post : pre, 1, 0)) : null;
 
             @Override
             public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
@@ -50,7 +55,7 @@ public class EvalFactory extends AbstractFactory {
                         return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getCode(inputs));
                     } else {
                         inputs[1] = getCode(inputs);
-                        return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), inputs[0], Undefined.instance, makeArgs.executeArguments(inputs), false, false, 0, 0);
+                        return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), inputs[0], Undefined.instance, makeArgs.executeArguments(inputs), false, false, Strings.fromJavaString("<builtin>"), 0, 0);
                     }
                 }
                 return null;
@@ -58,17 +63,36 @@ public class EvalFactory extends AbstractFactory {
 
             @Override
             public Object executePost(VirtualFrame frame, Object result,
-                            Object[] inputs) throws InteropException {
+                                      Object[] inputs) throws InteropException {
                 if (post != null) {
                     if (!isInvoke) {
                         return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getCode(inputs), convertResult(result));
                     } else {
                         inputs[1] = getCode(inputs);
-                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), inputs[0], Undefined.instance, makeArgs.executeArguments(inputs), convertResult(result), false, false, 0, 0);
+                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), inputs[0], Undefined.instance, makeArgs.executeArguments(inputs), convertResult(result), false, false, Strings.fromJavaString("<builtin>"), 0);
                     }
                 }
 
                 return null;
+            }
+
+            @Override
+            public Object executeOnInput(VirtualFrame frame, int inputIndex, Object input) throws InteropException {
+
+                if (onInput == null || inputIndex != 0 || !isInvoke) return null;
+
+                return cbNode.onInputCall(
+                        this,
+                        jalangiAnalysis,
+                        onInput,
+                        getSourceIID(),
+                        input,
+                        Undefined.instance,
+                        inputIndex,
+                        false,
+                        false,
+                        Strings.fromJavaString("<builtin>")
+                );
             }
         };
     }
