@@ -64,6 +64,12 @@ J$ = {};
         sandbox.disableAnalysis = function () {
             return sandbox.adapter.instrumentationSwitch(false);
         }
+        sandbox.hasTaint = function (obj, depth) {
+            return sandbox.adapter.hasTaint(obj, depth);
+        }
+        sandbox.checkTaints = function (obj, depth) {
+            return sandbox.adapter.checkTaints(obj, depth);
+        }
     } catch (e) {
         console.log("cannot load nodeprof jalangi adapter");
     }
