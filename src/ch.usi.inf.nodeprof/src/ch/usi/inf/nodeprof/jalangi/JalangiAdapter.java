@@ -20,6 +20,7 @@ import static ch.usi.inf.nodeprof.utils.ObjectHelper.setConfigProperty;
 
 import java.util.Arrays;
 
+import ch.usi.inf.nodeprof.utils.TaintHelper;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
@@ -67,7 +68,9 @@ public class JalangiAdapter implements TruffleObject {
         ONREADY("onReady"),
         REGISTERCALLBACK("registerCallback"),
         INSTRUMENTATIONSWITCH("instrumentationSwitch"),
-        GETCONFIG("getConfig");
+        GETCONFIG("getConfig"),
+        HASTAINT("hasTaint"),
+        CHECKTAINTS("checkTaints");
 
         final String name;
 
@@ -206,6 +209,12 @@ public class JalangiAdapter implements TruffleObject {
                     }
                 }
                 break;
+            }
+            case HASTAINT: {
+                return TaintHelper.hasTaint(arguments[0], (int) arguments[1]);
+            }
+            case CHECKTAINTS: {
+                return TaintHelper.checkTaints(arguments[0], (int) arguments[1]);
             }
             case NATIVELOG: {
                 Logger.Level level = Logger.Level.INFO;
