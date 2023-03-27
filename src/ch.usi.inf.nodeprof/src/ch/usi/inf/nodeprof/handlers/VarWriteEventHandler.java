@@ -19,6 +19,7 @@ package ch.usi.inf.nodeprof.handlers;
 import com.oracle.truffle.api.instrumentation.EventContext;
 
 import ch.usi.inf.nodeprof.ProfiledTagEnum;
+import com.oracle.truffle.js.runtime.objects.Undefined;
 
 /**
  * Abstract event handler for variable writes
@@ -30,7 +31,8 @@ public abstract class VarWriteEventHandler extends VarEventHandler {
     }
 
     public Object getValue(Object[] inputs) {
-        return assertGetInput(0, inputs, "getValue");
+        return inputs.length > 0 ? inputs[0] : Undefined.instance;
+//        return assertGetInput(0, inputs, "getValue");
     }
 
 }

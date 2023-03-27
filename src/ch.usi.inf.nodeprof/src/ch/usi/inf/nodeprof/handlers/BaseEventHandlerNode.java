@@ -177,7 +177,8 @@ public abstract class BaseEventHandlerNode extends Node {
         try {
             result = InteropLibrary.getFactory().getUncached().readMember(nodeObject, key);
         } catch (Exception e) {
-            reportAttributeMissingError(key, e);
+//            reportAttributeMissingError(key, e);
+            return null;
         }
         return result;
     }
@@ -228,7 +229,7 @@ public abstract class BaseEventHandlerNode extends Node {
             Object result = inputs[index];
             if (result == null) {
                 result = Undefined.instance;
-                reportInputsError(index, inputs, "InputElementNull", inputHint);
+//                reportInputsError(index, inputs, "InputElementNull", inputHint);
             }
             return result;
         } else {
