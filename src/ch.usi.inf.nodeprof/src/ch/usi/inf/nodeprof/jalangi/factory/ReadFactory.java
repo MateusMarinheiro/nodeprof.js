@@ -27,6 +27,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.PropertyReadEventHandler;
 import ch.usi.inf.nodeprof.handlers.VarReadEventHandler;
+import com.oracle.truffle.js.nodes.cast.JSToBooleanUnaryNode;
+import com.oracle.truffle.js.nodes.instrumentation.JSTaggedExecutionNode;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 public class ReadFactory extends AbstractFactory {

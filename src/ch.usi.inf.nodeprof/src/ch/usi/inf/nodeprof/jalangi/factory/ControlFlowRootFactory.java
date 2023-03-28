@@ -19,35 +19,36 @@ package ch.usi.inf.nodeprof.jalangi.factory;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.interop.InteropException;
-import com.oracle.truffle.api.object.DynamicObject;
 
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
-import ch.usi.inf.nodeprof.handlers.LoopEventHandler;
+import ch.usi.inf.nodeprof.handlers.CFRootEventHandler;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
-public class LoopFactory extends AbstractFactory {
-    public LoopFactory(Object jalangiAnalysis, JSDynamicObject pre, JSDynamicObject post) {
+import java.util.Arrays;
+
+public class ControlFlowRootFactory extends AbstractFactory {
+    public ControlFlowRootFactory(Object jalangiAnalysis, JSDynamicObject pre, JSDynamicObject post) {
         super("loop", jalangiAnalysis, pre, post);
     }
 
     @Override
     public BaseEventHandlerNode create(EventContext context) {
-        return new LoopEventHandler(context) {
-            @Child CallbackNode cbNode = new CallbackNode();
+        return new CFRootEventHandler(context) {
+            @Child
+            CallbackNode cbNode = new CallbackNode();
 
             @Override
             public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
                 if (pre != null) {
-                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getLoopType());
+                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), getType(), getCondition(inputs));
                 }
                 return null;
             }
 
             @Override
-            public Object executePost(VirtualFrame frame, Object result,
-                            Object[] inputs) throws InteropException {
+            public Object executePost(VirtualFrame frame, Object result, Object[] inputs) throws InteropException {
                 if (post != null) {
-                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getLoopType());
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getType(), getCondition(inputs));
                 }
                 return null;
             }

@@ -28,7 +28,7 @@ public enum ProfiledTagEnum {
     BINARY(JSTags.BinaryOperationTag.class, -1), // logical binaries might not have two inputs
     CF_BRANCH(JSTags.ControlFlowBranchTag.class, -1), // to be checked
     CF_BLOCK(JSTags.ControlFlowBlockTag.class, -1), // to be checked
-    CF_ROOT(JSTags.ControlFlowRootTag.class, 0), // to be checked
+    CF_ROOT(JSTags.ControlFlowRootTag.class, -1), // to be checked
     EVAL(JSTags.EvalCallTag.class, 2),
     DECLARE(JSTags.DeclareTag.class, 0),
     VAR_READ(JSTags.ReadVariableTag.class, 0),

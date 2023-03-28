@@ -46,7 +46,6 @@ import java.util.Set;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.object.DynamicObject;
 
 import ch.usi.inf.nodeprof.ProfiledTagEnum;
 import ch.usi.inf.nodeprof.jalangi.factory.AsyncRootFactory;
@@ -64,7 +63,7 @@ import ch.usi.inf.nodeprof.jalangi.factory.GetFieldFactory;
 import ch.usi.inf.nodeprof.jalangi.factory.InitialRootFactory;
 import ch.usi.inf.nodeprof.jalangi.factory.InvokeFactory;
 import ch.usi.inf.nodeprof.jalangi.factory.LiteralFactory;
-import ch.usi.inf.nodeprof.jalangi.factory.LoopFactory;
+import ch.usi.inf.nodeprof.jalangi.factory.ControlFlowRootFactory;
 import ch.usi.inf.nodeprof.jalangi.factory.PutElementFactory;
 import ch.usi.inf.nodeprof.jalangi.factory.PutFieldFactory;
 import ch.usi.inf.nodeprof.jalangi.factory.ReadFactory;
@@ -162,6 +161,9 @@ public class JalangiAnalysis {
             put("endStatement", EnumSet.of(STATEMENT));
 
             put("newSource", EnumSet.of(ROOT));
+
+            put("controlFlowRootEnter", EnumSet.of(CF_ROOT));
+            put("controlFlowRootExit", EnumSet.of(CF_ROOT));
         }
     });
 
@@ -261,7 +263,19 @@ public class JalangiAnalysis {
         if (this.callbacks.containsKey("conditional")) {
             this.instrument.onCallback(
                     ProfiledTagEnum.CF_BRANCH,
-                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional")));
+                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), false));
+            this.instrument.onCallback(
+                    PROPERTY_READ,
+                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
+            this.instrument.onCallback(
+                    ELEMENT_READ,
+                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
+            this.instrument.onCallback(
+                    VAR_READ,
+                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
+            this.instrument.onCallback(
+                    INVOKE,
+                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
         }
 
         /*
@@ -341,15 +355,11 @@ public class JalangiAnalysis {
                     new AwaitFactory(this.jsAnalysis, callbacks.get("awaitPre"), callbacks.get("awaitPost")));
         }
 
-        /*
-         * TODO
-         *
-         * Loop not tested
-         */
-        if (this.callbacks.containsKey("loopEnter") || this.callbacks.containsKey("loopExit")) {
+        // ToDo - better names
+        if (this.callbacks.containsKey("controlFlowRootEnter") || this.callbacks.containsKey("controlFlowRootExit")) {
             this.instrument.onCallback(
                     ProfiledTagEnum.CF_ROOT,
-                    new LoopFactory(this.jsAnalysis, callbacks.get("loopEnter"), callbacks.get("loopExit")));
+                    new ControlFlowRootFactory(this.jsAnalysis, callbacks.get("controlFlowRootEnter"), callbacks.get("controlFlowRootExit")));
         }
 
         /*

@@ -22,7 +22,7 @@ import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
-import ch.usi.inf.nodeprof.handlers.LoopEventHandler;
+import ch.usi.inf.nodeprof.handlers.CFRootEventHandler;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 public class ForObjectFactory extends AbstractFactory {
@@ -32,7 +32,7 @@ public class ForObjectFactory extends AbstractFactory {
 
     @Override
     public BaseEventHandlerNode create(EventContext context) {
-        return new LoopEventHandler(context) {
+        return new CFRootEventHandler(context) {
             @Child CallbackNode cbNode = new CallbackNode();
 
             @Override

@@ -23,13 +23,14 @@ import ch.usi.inf.nodeprof.ProfiledTagEnum;
 
 /**
  * Abstract event handler for conditional events
+ * isNonConditional indicates if the conditional is triggered from somewhere else (see jalangi ConditionalFactory for why this is necessary)
  */
 public abstract class ConditionalEventHandler extends BaseSingleTagEventHandler {
     private final boolean isConditional;
 
-    public ConditionalEventHandler(EventContext context) {
+    public ConditionalEventHandler(EventContext context, boolean isNonConditional) {
         super(context, ProfiledTagEnum.CF_BRANCH);
-        this.isConditional = JSTags.ControlFlowBranchTag.Type.Condition.name().equals(getAttributeOrNull("type"));
+        this.isConditional = !isNonConditional && JSTags.ControlFlowBranchTag.Type.Condition.name().equals(getAttributeOrNull("type"));
     }
 
     public boolean isConditional() {
