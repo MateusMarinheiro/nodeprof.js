@@ -56,7 +56,7 @@ public class BranchCoverage extends TestableNodeProfAnalysis {
         this.onCallback(ProfiledTagEnum.CF_BRANCH, new AnalysisFactory<BaseEventHandlerNode>() {
             @Override
             public BaseEventHandlerNode create(EventContext context) {
-                return new ConditionalEventHandler(context) {
+                return new ConditionalEventHandler(context, true) {
 
                     @Child ReportEntryNode trueCounter = ReportEntryNodeGen.create(trueDB, new SimpleCounterReport.SimleReportFactory());
                     @Child ReportEntryNode falseCounter = ReportEntryNodeGen.create(falseDB, new SimpleCounterReport.SimleReportFactory());

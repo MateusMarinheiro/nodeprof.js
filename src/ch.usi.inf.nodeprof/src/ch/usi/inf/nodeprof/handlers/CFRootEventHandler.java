@@ -17,9 +17,13 @@
 package ch.usi.inf.nodeprof.handlers;
 
 import com.oracle.truffle.api.instrumentation.EventContext;
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
+import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.js.nodes.instrumentation.JSTags;
 
 import ch.usi.inf.nodeprof.ProfiledTagEnum;
+import com.oracle.truffle.js.runtime.Strings;
+import com.oracle.truffle.js.runtime.objects.Undefined;
 
 public abstract class CFRootEventHandler extends BaseSingleTagEventHandler {
 
@@ -30,7 +34,25 @@ public abstract class CFRootEventHandler extends BaseSingleTagEventHandler {
         this.type = getAttributeInternalString("type");
     }
 
+    public TruffleString getType() {
+        // XXX cache string
+        return Strings.fromJavaString(type);
+    }
+
+    public Object getCondition(Object[] inputs) {
+        Object cond = inputs != null && inputs.length > 0 ? inputs[0] : Undefined.instance;
+        return cond != null ? cond : Undefined.instance;
+    }
+
     public boolean isAsyncRoot() {
         return this.type.equals(JSTags.ControlFlowRootTag.Type.AsyncFunction.name());
+    }
+
+    public boolean isForIn() {
+        return type.equals(JSTags.ControlFlowRootTag.Type.ForInIteration.name());
+    }
+
+    public boolean isForOf() {
+        return type.equals(JSTags.ControlFlowRootTag.Type.ForOfIteration.name());
     }
 }
