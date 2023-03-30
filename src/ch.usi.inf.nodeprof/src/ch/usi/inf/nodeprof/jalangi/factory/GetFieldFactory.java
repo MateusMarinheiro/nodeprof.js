@@ -28,10 +28,12 @@ import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.PropertyReadEventHandler;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.js.nodes.function.JSFunctionCallNode;
+import com.oracle.truffle.js.nodes.temporal.TemporalRoundDurationNode;
 import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
 import com.oracle.truffle.js.runtime.builtins.JSFunctionData;
 import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
+import com.oracle.truffle.js.runtime.interop.InteropBoundFunction;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.JSObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
@@ -69,7 +71,15 @@ public class GetFieldFactory extends AbstractFactory {
                     // Only fetch scope when we have an undefine prop read -> this is specific to our case to improve performance
                     // To generalize remove
                     Object scope = result == Undefined.instance ? getContextScope() : Undefined.instance;
-                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), convertResult(result), false, isOpAssign(), isMethodCall(), scope);
+                    Object functionScope = Undefined.instance;
+                    boolean isAsync = false;
+
+                    if (result instanceof JSFunctionObject) {
+                        functionScope = getScopeOf(((JSFunctionObject) result).getSourceLocation().getSource());
+                        isAsync = ((JSFunctionObject) result).getFunctionData().isAsync();
+                    }
+
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), convertResult(result), false, functionScope, isAsync, scope);
                 }
                 return null;
             }

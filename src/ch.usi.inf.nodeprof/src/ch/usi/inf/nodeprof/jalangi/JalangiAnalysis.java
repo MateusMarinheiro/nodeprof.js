@@ -264,18 +264,18 @@ public class JalangiAnalysis {
             this.instrument.onCallback(
                     ProfiledTagEnum.CF_BRANCH,
                     new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), false));
-            this.instrument.onCallback(
-                    PROPERTY_READ,
-                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
-            this.instrument.onCallback(
-                    ELEMENT_READ,
-                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
-            this.instrument.onCallback(
-                    VAR_READ,
-                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
-            this.instrument.onCallback(
-                    INVOKE,
-                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
+//            this.instrument.onCallback(
+//                    PROPERTY_READ,
+//                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
+//            this.instrument.onCallback(
+//                    ELEMENT_READ,
+//                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
+//            this.instrument.onCallback(
+//                    VAR_READ,
+//                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
+//            this.instrument.onCallback(
+//                    INVOKE,
+//                    new ConditionalFactory(this.jsAnalysis, callbacks.get("conditional"), true));
         }
 
         /*

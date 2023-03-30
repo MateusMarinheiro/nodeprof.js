@@ -292,7 +292,7 @@ process.on('SIGINT', function () {
     process.exit();
 });
 
-process.on('uncaughtException', function (err, origin) {
+process.on('uncaughtExceptionMonitor', function (err, origin) {
     J$.uncaughtException(err, origin);
 });
 
