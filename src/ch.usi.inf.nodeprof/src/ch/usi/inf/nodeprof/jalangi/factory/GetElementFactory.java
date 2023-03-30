@@ -23,7 +23,9 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.ElementReadEventHandler;
+import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
+import com.oracle.truffle.js.runtime.objects.Undefined;
 
 public class GetElementFactory extends AbstractFactory {
 
@@ -35,7 +37,8 @@ public class GetElementFactory extends AbstractFactory {
     @Override
     public BaseEventHandlerNode create(EventContext context) {
         return new ElementReadEventHandler(context) {
-            @Child CallbackNode cbNode = new CallbackNode();
+            @Child
+            CallbackNode cbNode = new CallbackNode();
 
             @Override
             public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
@@ -47,9 +50,18 @@ public class GetElementFactory extends AbstractFactory {
 
             @Override
             public Object executePost(VirtualFrame frame, Object result,
-                            Object[] inputs) throws InteropException {
+                                      Object[] inputs) throws InteropException {
                 if (post != null) {
-                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(inputs), convertResult(result), true, isOpAssign(), isMethodCall());
+                    Object scope = result == Undefined.instance ? getContextScope() : Undefined.instance;
+
+                    Object functionScope = Undefined.instance;
+                    boolean isAsync = false;
+                    if (result instanceof JSFunctionObject) {
+                        functionScope = getScopeOf(((JSFunctionObject) result).getSourceLocation().getSource());
+                        isAsync = ((JSFunctionObject) result).getFunctionData().isAsync();
+                    }
+
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(inputs), convertResult(result), true, functionScope, isAsync, scope);
                 }
 
                 return null;

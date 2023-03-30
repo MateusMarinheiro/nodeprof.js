@@ -107,13 +107,17 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         if (child.expectedNumInputs() < 0 || inputIndex < child.expectedNumInputs()) {
             // save input only necessary
             // note that we save the original input and not the returned new result (this means that later callback (pre, post, exception) get the original input)
-            saveInputValue(frame, inputIndex, input);
 
             try {
                 newResult = this.child.executeOnInput(frame, inputIndex, input);
+                if (newResult != null) {
+                    input = newResult;
+                }
             } catch (Throwable e) {
                 reportError(null, e);
             }
+
+            saveInputValue(frame, inputIndex, input);
         }
 
         if (this.child.isLastIndex(getInputCount(), inputIndex)) {

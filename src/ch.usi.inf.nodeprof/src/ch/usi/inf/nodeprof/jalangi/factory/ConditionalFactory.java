@@ -54,16 +54,16 @@ public class ConditionalFactory extends AbstractFactory {
                     if (!isValue && isConditional()) {
                         return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result), false);
                     } else if (isValue) {
-                        // ToDo - it is probably better to do this via CF_ROOT_ENTER
+                        // ToDo - fix this
                         // This is a workaround for non-insturmentable conditional nodes
                         // Specifically these are while loops with a boolean variable, function, ... as condition (e.g. while(someVar) {...})
-                        Node unaryWrapper = this.context.getInstrumentedNode().getParent().getParent();
-                        Node tagWrapper = unaryWrapper.getParent();
-                        if (unaryWrapper instanceof JSToBooleanUnaryNode
-                                && tagWrapper instanceof JSTaggedExecutionNode
-                                && ((JSTaggedExecutionNode) tagWrapper).hasTag(JSTags.ControlFlowBranchTag.class)) {
-                            return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result), true);
-                        }
+//                        Node unaryWrapper = this.context.getInstrumentedNode().getParent().getParent();
+//                        Node tagWrapper = unaryWrapper.getParent();
+//                        if (unaryWrapper instanceof JSToBooleanUnaryNode
+//                                && tagWrapper instanceof JSTaggedExecutionNode
+//                                && ((JSTaggedExecutionNode) tagWrapper).hasTag(JSTags.ControlFlowBranchTag.class)) {
+//                            return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result), true);
+//                        }
                     }
                 }
                 return null;

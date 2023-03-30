@@ -128,7 +128,6 @@ public class InvokeFactory extends AbstractFactory {
 
             @Override
             public Object executeOnInput(VirtualFrame frame, int inputIndex, Object input) throws InteropException {
-
                 if (onInput == null) return null;
 
                 // set receiver
