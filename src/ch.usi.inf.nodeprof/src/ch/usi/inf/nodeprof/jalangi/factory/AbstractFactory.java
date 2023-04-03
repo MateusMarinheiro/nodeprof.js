@@ -227,7 +227,11 @@ public abstract class AbstractFactory implements
         }
 
         private Object readResult(Object ret) {
-            Object returnMember = readReturnMember(ret, "result");
+            // only read return __result prop if ret is no analysis proxy (else it might get injected)
+            Object returnMember = this.readReturnMember(ret, "__isAnalysisProxy") == null ?
+                    readReturnMember(ret, "result")
+                    : null;
+
             if (returnMember != null) {
                 return returnMember;
             } else if (ret != Undefined.instance) {
@@ -245,8 +249,8 @@ public abstract class AbstractFactory implements
                 Object ret = preCall.call(args);
                 checkDeactivate(ret, handler);
 
-//                return readReturnMember(ret, "result");
-                return readResult(ret);
+                return readReturnMember(ret, "result");
+//                return readResult(ret);
             } catch (JSInterruptedExecutionException e) {
                 Logger.error("execution cancelled probably due to timeout");
                 return null;
@@ -265,7 +269,7 @@ public abstract class AbstractFactory implements
 
                 // Get result from js call and return it to change node result if needed
                 // Maybe this would be nicer to do in the specific factories for more fine-grained control
-                return readResult(ret);
+                return readReturnMember(ret, "result");
 
             } catch (JSInterruptedExecutionException e) {
                 Logger.error("execution cancelled probably due to timeout");
@@ -283,7 +287,7 @@ public abstract class AbstractFactory implements
             try {
                 Object ret = onInputCall.call(args);
                 checkDeactivate(ret, handler);
-                return readResult(ret);
+                return readReturnMember(ret, "result");
             } catch (JSInterruptedExecutionException e) {
                 Logger.error("execution cancelled probably due to timeout");
                 return null;
@@ -299,7 +303,7 @@ public abstract class AbstractFactory implements
             try {
                 Object ret = onExceptionCall.call(args);
                 checkDeactivate(ret, handler);
-                return readResult(ret);
+                return readReturnMember(ret, "result");
             } catch (JSInterruptedExecutionException e) {
                 Logger.error("execution cancelled probably due to timeout");
                 return null;

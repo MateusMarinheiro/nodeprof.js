@@ -106,7 +106,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
 
         if (child.expectedNumInputs() < 0 || inputIndex < child.expectedNumInputs()) {
             // save input only necessary
-            // note that we save the original input and not the returned new result (this means that later callback (pre, post, exception) get the original input)
+            // note that we save the returned result if available - that means that all callbacks get the changed input
 
             try {
                 newResult = this.child.executeOnInput(frame, inputIndex, input);
