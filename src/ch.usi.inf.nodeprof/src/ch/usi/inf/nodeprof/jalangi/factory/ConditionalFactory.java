@@ -30,6 +30,7 @@ import com.oracle.truffle.js.nodes.instrumentation.JSTaggedExecutionNode;
 import com.oracle.truffle.js.nodes.instrumentation.JSTags;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class ConditionalFactory extends AbstractFactory {

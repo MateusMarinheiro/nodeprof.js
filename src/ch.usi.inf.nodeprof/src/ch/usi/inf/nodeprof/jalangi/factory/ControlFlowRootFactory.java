@@ -22,6 +22,7 @@ import com.oracle.truffle.api.interop.InteropException;
 
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.CFRootEventHandler;
+import com.oracle.truffle.js.nodes.control.WhileNode;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 
 import java.util.Arrays;
