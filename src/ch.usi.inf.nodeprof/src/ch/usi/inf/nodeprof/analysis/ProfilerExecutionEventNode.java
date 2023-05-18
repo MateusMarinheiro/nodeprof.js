@@ -19,6 +19,7 @@ package ch.usi.inf.nodeprof.analysis;
 import ch.usi.inf.nodeprof.ProfiledTagEnum;
 import ch.usi.inf.nodeprof.handlers.BaseEventHandlerNode;
 import ch.usi.inf.nodeprof.handlers.BinaryEventHandler;
+import ch.usi.inf.nodeprof.handlers.CFRootEventHandler;
 import ch.usi.inf.nodeprof.handlers.FunctionCallEventHandler;
 import ch.usi.inf.nodeprof.utils.GlobalConfiguration;
 import ch.usi.inf.nodeprof.utils.Logger;
@@ -123,7 +124,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         if (this.child.isLastIndex(getInputCount(), inputIndex)) {
             this.cb.preHitCount++;
             try {
-                this.child.executePre(frame, child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null);
+                newResult = this.child.executePre(frame, child.expectedNumInputs() != 0 ? getSavedInputValues(frame) : null);
 
                 // allow for handler changes after executePre/Post
                 checkHandlerChanges();
@@ -157,14 +158,14 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
 //        }
 
         hasOnEnter++;
-//        Object newResult = null;
+        Object newResult = null;
         try {
             this.child.enter(frame);
 
             if (this.child.isLastIndex(getInputCount(), -1)) {
                 this.cb.preHitCount++;
 
-                this.child.executePre(frame, null);
+                newResult = this.child.executePre(frame, null);
 
                 // allow for handler changes after executePre/Post
                 checkHandlerChanges();
@@ -172,10 +173,10 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
         } catch (Throwable e) {
             reportError(null, e);
         }
-//        if (newResult != null) {
-//            CompilerDirectives.transferToInterpreter();
-//            throw context.createUnwind(newResult);
-//        }
+        if (newResult != null) {
+            CompilerDirectives.transferToInterpreter();
+            throw context.createUnwind(newResult);
+        }
     }
 
 

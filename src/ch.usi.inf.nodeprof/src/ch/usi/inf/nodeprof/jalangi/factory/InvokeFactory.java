@@ -94,6 +94,7 @@ public class InvokeFactory extends AbstractFactory {
 
                     // TODO Jalangi's function iid/sid are set to be 0/0
                     return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), fun, receiver, makeArgs.executeArguments(inputs), isNew(), isInvoke(), getScopeOf(src), proxy, 0, 0);
+//                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), fun, receiver, Undefined.instance, isNew(), isInvoke(), getScopeOf(src), proxy, 0, 0);
                 }
                 return null;
             }
