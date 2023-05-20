@@ -209,7 +209,8 @@ public abstract class SourceMapping {
         if (isInternal) {
             b.append("*");
         }
-        b.append(shortPath(fileName));
+//        b.append(shortPath(fileName));
+        b.append(fileName);
         b.append(":").append(makeSectionString(sourceSection));
         b.append(")");
         return b;
