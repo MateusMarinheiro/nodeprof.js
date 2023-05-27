@@ -133,6 +133,7 @@ public class JalangiAnalysis {
             // operators
             put("unaryPre", EnumSet.of(UNARY));
             put("unary", EnumSet.of(UNARY));
+            put("binaryEnter", EnumSet.of(BINARY));
             put("binaryPre", EnumSet.of(BINARY));
             put("binary", EnumSet.of(BINARY));
 
@@ -237,11 +238,12 @@ public class JalangiAnalysis {
                             true));
         }
 
-        if (this.callbacks.containsKey("binaryPre") || this.callbacks.containsKey("binary")) {
+        if (this.callbacks.containsKey("binaryPre") || this.callbacks.containsKey("binary") || this.callbacks.containsKey("binaryEnter")) {
             this.instrument.onCallback(ProfiledTagEnum.BINARY,
                     new BinaryFactory(this.jsAnalysis,
                             callbacks.get("binaryPre"),
-                            callbacks.get("binary")));
+                            callbacks.get("binary"),
+                            callbacks.get("binaryEnter")));
         }
 
         if (this.callbacks.containsKey("literal")) {

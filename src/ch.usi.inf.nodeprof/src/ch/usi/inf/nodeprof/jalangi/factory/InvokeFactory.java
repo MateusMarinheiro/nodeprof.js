@@ -50,7 +50,7 @@ public class InvokeFactory extends AbstractFactory {
 
     public InvokeFactory(Object jalangiAnalysis, ProfiledTagEnum tag, JSDynamicObject pre,
                          JSDynamicObject post, JSDynamicObject onInput, JSDynamicObject onException) {
-        super("invokeFun", jalangiAnalysis, pre, post, onInput, onException);
+        super("invokeFun", jalangiAnalysis, pre, post, onInput, onException, null);
         this.tag = tag;
     }
 
