@@ -53,8 +53,10 @@ public abstract class AbstractFactory implements
 
     protected final JSDynamicObject pre;
     protected final JSDynamicObject post;
+    protected final JSDynamicObject enter;
     protected final JSDynamicObject onInput;
     protected final JSDynamicObject onException;
+
 
     protected final String jalangiCallback;
 
@@ -113,18 +115,19 @@ public abstract class AbstractFactory implements
     }
 
     public AbstractFactory(String jalangiCallback, Object jalangiAnalysis, JSDynamicObject pre,
-                           JSDynamicObject post, JSDynamicObject onInput, JSDynamicObject onException) {
+                           JSDynamicObject post, JSDynamicObject onInput, JSDynamicObject onException, JSDynamicObject enter) {
         this.jalangiCallback = jalangiCallback;
         this.jalangiAnalysis = jalangiAnalysis;
         this.pre = pre;
         this.post = post;
         this.onInput = onInput;
         this.onException = onException;
+        this.enter = enter;
     }
 
     public AbstractFactory(String jalangiCallback, Object jalangiAnalysis, JSDynamicObject pre,
                            JSDynamicObject post) {
-        this(jalangiCallback, jalangiAnalysis, pre, post, null, null);
+        this(jalangiCallback, jalangiAnalysis, pre, post, null, null, null);
     }
 
     /**
@@ -199,6 +202,9 @@ public abstract class AbstractFactory implements
 
         @Node.Child
         DirectCallNode onExceptionCall = onException != null ? Truffle.getRuntime().createDirectCallNode(JSFunction.getCallTarget(onException)) : null;
+
+        @Node.Child
+        DirectCallNode enterCall = enter != null ? Truffle.getRuntime().createDirectCallNode(JSFunction.getCallTarget(enter)) : null;
 
         @Child
         private InteropLibrary interopLibrary = InteropLibrary.getFactory().createDispatched(3);
@@ -307,6 +313,19 @@ public abstract class AbstractFactory implements
             } catch (JSInterruptedExecutionException e) {
                 Logger.error("execution cancelled probably due to timeout");
                 return null;
+            } finally {
+                afterCall();
+            }
+        }
+
+        public void enterCall(BaseEventHandlerNode handler, Object... args) {
+            if (enter == null || !beforeCall()) return;
+
+            try {
+                Object ret = enterCall.call(args);
+                checkDeactivate(ret, handler);
+            } catch (JSInterruptedExecutionException e) {
+                Logger.error("execution cancelled probably due to timeout");
             } finally {
                 afterCall();
             }

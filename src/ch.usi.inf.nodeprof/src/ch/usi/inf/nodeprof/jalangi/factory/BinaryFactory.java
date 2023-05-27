@@ -27,8 +27,8 @@ import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 public class BinaryFactory extends AbstractFactory {
 
     public BinaryFactory(Object jalangiAnalysis, JSDynamicObject pre,
-                         JSDynamicObject post) {
-        super("binary", jalangiAnalysis, pre, post);
+                         JSDynamicObject post, JSDynamicObject enter) {
+        super("binary", jalangiAnalysis, pre, post, null, null, enter);
     }
 
     @Override
@@ -50,6 +50,13 @@ public class BinaryFactory extends AbstractFactory {
                 return post != null
                         ? cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getOp(), getLeft(inputs), getRight(inputs), convertResult(result), isLogic())
                         : null;
+            }
+
+            @Override
+            public void executeEnter(VirtualFrame frame) {
+                if (enter == null) return;
+
+                cbNode.enterCall(this, jalangiAnalysis, enter, getSourceIID(), getOp());
             }
         };
     }

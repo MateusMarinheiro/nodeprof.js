@@ -70,7 +70,7 @@ public final class EventLogger extends TestableNodeProfAnalysis {
                 public BaseEventHandlerNode create(EventContext context) {
                     return new BaseSingleTagEventHandler(context, tag) {
                         @Override
-                        public void enter(VirtualFrame frame) {
+                        public void executeEnter(VirtualFrame frame) {
                             addDebugEvent("ENTER", getSourceIID(), tag);
                         }
 

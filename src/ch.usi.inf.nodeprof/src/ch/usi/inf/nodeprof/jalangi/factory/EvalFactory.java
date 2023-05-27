@@ -36,7 +36,7 @@ public class EvalFactory extends AbstractFactory {
 
     public EvalFactory(Object jalangiAnalysis, JSDynamicObject pre,
                        JSDynamicObject post, JSDynamicObject onInput, boolean isInvoke) {
-        super("eval", jalangiAnalysis, pre, post, onInput, null);
+        super("eval", jalangiAnalysis, pre, post, onInput, null, null);
         this.isInvoke = isInvoke;
     }
 

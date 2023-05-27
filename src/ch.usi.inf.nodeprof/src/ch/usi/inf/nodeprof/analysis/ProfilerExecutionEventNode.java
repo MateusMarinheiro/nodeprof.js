@@ -150,17 +150,10 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
             return;
         }
 
-//        System.out.println("Enter " + frame);
-
-//        if (this.child instanceof BinaryEventHandler && ((BinaryEventHandler) this.child).getOp().toString().equals("+")) {
-//            CompilerDirectives.transferToInterpreter();
-//            throw context.createUnwind(Strings.fromJavaString("enter"));
-//        }
-
         hasOnEnter++;
         Object newResult = null;
         try {
-            this.child.enter(frame);
+            this.child.executeEnter(frame);
 
             if (this.child.isLastIndex(getInputCount(), -1)) {
                 this.cb.preHitCount++;

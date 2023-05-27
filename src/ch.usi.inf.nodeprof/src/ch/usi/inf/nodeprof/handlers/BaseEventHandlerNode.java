@@ -102,14 +102,12 @@ public abstract class BaseEventHandlerNode extends Node {
         return sourceIID;
     }
 
-    @SuppressWarnings(value = {"unused"})
-    public void enter(VirtualFrame frame) {
+    public void executeEnter(VirtualFrame frame) {
     }
 
     /**
      * @param frame  the current virtual frame
      * @param inputs the input array get from ExecutionEventNode.getSavedInputValues()
-     * @throws Exception
      */
     public Object executePre(VirtualFrame frame, Object[] inputs) throws Exception {
         return null;
