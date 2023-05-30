@@ -31,12 +31,14 @@ import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNodeFactory;
 import com.oracle.truffle.api.instrumentation.InstrumentableNode;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
+import com.oracle.truffle.api.instrumentation.SourceFilter;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter.SourcePredicate;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.instrumentation.TruffleInstrument.Env;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.js.nodes.binary.DualNode;
 import com.oracle.truffle.js.nodes.instrumentation.JSTaggedExecutionNode;
 import com.oracle.truffle.js.nodes.instrumentation.JSTags;
 import com.oracle.truffle.js.nodes.instrumentation.JSTags.InputNodeTag;
@@ -270,6 +272,9 @@ public abstract class NodeProfAnalysis {
                 }
             }
 
+            // Todo - for now we always add the expression tag - this is so we are able to filter in the factory by node instance (maybe there is a better way)
+            definedTags.add(StandardTags.ExpressionTag.class);
+
             if (definedTags.size() > 0) {
                 Class<?>[] eventTags = new Class<?>[definedTags.size()];
                 definedTags.toArray(eventTags);
@@ -280,12 +285,18 @@ public abstract class NodeProfAnalysis {
                         eventFilter,
                         inputFilter,
                         new ExecutionEventNodeFactory() {
-
                             @Override
                             @TruffleBoundary
                             public ExecutionEventNode create(EventContext context) {
                                 int count = 0;
                                 InstrumentableNode instrumentedNode = (InstrumentableNode) context.getInstrumentedNode();
+
+                                // instrument DualNodes - we don't care for callbacks for now - this is just so that functions can be changed correctly
+                                // ToDo - add callback and make it configurable
+                                if (instrumentedNode instanceof DualNode) {
+                                    return new ProfilerExecutionEventNode(null, context, null);
+                                }
+
                                 for (Entry<ProfiledTagEnum, ArrayList<AnalysisFactory<BaseEventHandlerNode>>> entry : handlerMapping.entrySet()) {
                                     if (instrumentedNode.hasTag(entry.getKey().getTag()) && !Arrays.asList(separateFactoryTags).contains(entry.getKey())) {
                                         count += 1;

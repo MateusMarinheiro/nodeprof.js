@@ -86,7 +86,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
                                       BaseEventHandlerNode child) {
         this.context = context;
         this.cb = cb;
-        this.cb.nodeCount++;
+        if (cb != null) this.cb.nodeCount++;
         this.child = child;
     }
 
@@ -97,7 +97,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
     @Override
     protected void onInputValue(VirtualFrame frame, EventContext inputContext,
                                 int inputIndex, Object inputValue) {
-        if (!profilerEnabled) {
+        if (!profilerEnabled || this.child == null) {
             return;
         }
 
@@ -146,7 +146,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
 
     @Override
     protected void onEnter(VirtualFrame frame) {
-        if (!profilerEnabled) {
+        if (!profilerEnabled || this.child == null) {
             return;
         }
 
@@ -175,7 +175,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
 
     @Override
     protected void onReturnValue(VirtualFrame frame, Object result) {
-        if (!profilerEnabled) {
+        if (!profilerEnabled || this.child == null) {
             return;
         }
 

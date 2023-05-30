@@ -29,7 +29,9 @@ import ch.usi.inf.nodeprof.handlers.PropertyReadEventHandler;
 import ch.usi.inf.nodeprof.handlers.VarReadEventHandler;
 import com.oracle.truffle.js.nodes.cast.JSToBooleanUnaryNode;
 import com.oracle.truffle.js.nodes.instrumentation.JSTaggedExecutionNode;
+import com.oracle.truffle.js.runtime.builtins.JSFunctionObject;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
+import com.oracle.truffle.js.runtime.objects.Undefined;
 
 public class ReadFactory extends AbstractFactory {
 
@@ -51,11 +53,10 @@ public class ReadFactory extends AbstractFactory {
                 @Override
                 public Object executePost(VirtualFrame frame, Object result,
                                           Object[] inputs) throws InteropException {
-                    if (post != null) {
-                        // TODO, isScriptLocal is set true here
-                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getName(), convertResult(result), false, true);
-                    }
-                    return null;
+                    if (post == null) return null;
+
+                    // TODO, isScriptLocal is set true here
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getName(), convertResult(result), false, true);
                 }
             };
         } else {
