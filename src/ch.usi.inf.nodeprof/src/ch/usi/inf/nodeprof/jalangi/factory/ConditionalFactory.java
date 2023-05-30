@@ -53,7 +53,7 @@ public class ConditionalFactory extends AbstractFactory {
                                       Object[] inputs) throws InteropException {
                 if (post != null) {
                     if (!isValue && isConditional()) {
-                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), convertResult(result), false);
+                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), inputs[0], convertResult(result), false);
                     } else if (isValue) {
                         // ToDo - fix this
                         // This is a workaround for non-insturmentable conditional nodes
