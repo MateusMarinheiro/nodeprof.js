@@ -23,10 +23,18 @@ import com.oracle.truffle.js.nodes.binary.InNode;
 import com.oracle.truffle.js.nodes.binary.InstanceofNode;
 import com.oracle.truffle.js.nodes.binary.JSLogicalNode;
 import com.oracle.truffle.js.nodes.binary.JSOrNode;
+import com.oracle.truffle.js.nodes.instrumentation.JSTaggedExecutionNode;
+import com.oracle.truffle.js.nodes.instrumentation.JSTags;
+import com.oracle.truffle.js.nodes.instrumentation.NodeObjectDescriptor;
+import com.oracle.truffle.js.nodes.unary.JSNotNode;
+import com.oracle.truffle.js.nodes.unary.JSNotNodeGen;
 import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.objects.Undefined;
 
 import ch.usi.inf.nodeprof.ProfiledTagEnum;
+
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Abstract event handler for binary events
