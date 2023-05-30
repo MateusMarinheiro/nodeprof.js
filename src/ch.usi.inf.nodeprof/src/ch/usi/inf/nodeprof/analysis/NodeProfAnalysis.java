@@ -264,8 +264,9 @@ public abstract class NodeProfAnalysis {
                                     if (instrumentedNode.hasTag(tag.getTag())) {
                                         return createAndSimplifyExecutionEventNode(context, tag, handlerMapping.get(tag));
                                     } else {
-                                        return new ExecutionEventNode() {
-                                        };
+//                                        return new ExecutionEventNode() {
+//                                        };
+                                        return null;
                                     }
                                 }
                             });
@@ -330,8 +331,9 @@ public abstract class NodeProfAnalysis {
                                 // if there is no handler for this node, return an empty
                                 // ExecutionEventNode which should bring zero overhead after
                                 // compilation
-                                return new ExecutionEventNode() {
-                                };
+//                                return new ExecutionEventNode() {
+//                                };
+                                return null;
                             }
 
                         });
@@ -384,8 +386,9 @@ public abstract class NodeProfAnalysis {
         if (handler != null) {
             return new ProfilerExecutionEventNode(key, context, handler);
         } else {
-            return new ExecutionEventNode() {
-            };
+            return null;
+//            return new ExecutionEventNode() {
+//            };
         }
     }
 
