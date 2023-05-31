@@ -239,7 +239,7 @@ public class ProfilerExecutionEventNode extends ExecutionEventNode {
 
     @Override
     protected void onReturnExceptional(VirtualFrame frame, Throwable exception) {
-        if (!profilerEnabled) {
+        if (!profilerEnabled || this.child == null) {
             return;
         }
 
