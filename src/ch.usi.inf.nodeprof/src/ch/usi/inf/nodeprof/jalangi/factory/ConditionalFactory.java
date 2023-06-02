@@ -53,9 +53,10 @@ public class ConditionalFactory extends AbstractFactory {
                                       Object[] inputs) throws InteropException {
                 if (post != null) {
                     if (!isValue && isConditional()) {
-                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), inputs[0], convertResult(result), false);
+                        Object input = getInputOrUndefined(0, inputs);
+                        return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), input, convertResult(result), false);
                     } else if (isValue) {
-                        // ToDo - fix this
+                        // ToDo - fix this (or remove it - it's not needed anymore)
                         // This is a workaround for non-insturmentable conditional nodes
                         // Specifically these are while loops with a boolean variable, function, ... as condition (e.g. while(someVar) {...})
 //                        Node unaryWrapper = this.context.getInstrumentedNode().getParent().getParent();
