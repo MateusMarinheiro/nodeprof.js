@@ -210,6 +210,15 @@ public abstract class BaseEventHandlerNode extends Node {
         }
     }
 
+    protected Object getInputOrUndefined(int index, Object[] inputs) {
+        if (inputs != null && index < inputs.length) {
+            Object result = inputs[index];
+            if (result == null) result = Undefined.instance;
+            return result;
+        }
+        return Undefined.instance;
+    }
+
     /**
      * retrieve the real value from the inputs with exception handler
      *
@@ -218,6 +227,7 @@ public abstract class BaseEventHandlerNode extends Node {
      * @param inputHint
      * @return the value of inputs[index]
      */
+    // ToDo - re-enable assertion and use above method instead if not required
     protected Object assertGetInput(int index, Object[] inputs, String inputHint) {
         if (inputs == null) {
             reportInputsError(index, null, "InputsArrayNull", inputHint);

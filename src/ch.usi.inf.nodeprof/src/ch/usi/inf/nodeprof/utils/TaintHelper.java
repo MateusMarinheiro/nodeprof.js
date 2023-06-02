@@ -22,7 +22,7 @@ public abstract class TaintHelper {
     @CompilerDirectives.TruffleBoundary
     public static boolean hasTaint(JSDynamicObject obj, int depth) {
         if (obj instanceof JSProxyObject) {
-            return ((JSProxyObject) obj).getProxyHandler().hasOwnProperty(Strings.fromJavaString("__taint"));
+            return ((JSProxyObject) obj).getProxyHandler().hasOwnProperty(Strings.fromJavaString("__x_taint"));
         }
 
         if (depth == 0) return false;
@@ -79,7 +79,7 @@ public abstract class TaintHelper {
 
     @CompilerDirectives.TruffleBoundary
     public static void getTaints(JSDynamicObject obj, int depth, List<JSDynamicObject> taints) {
-        if (obj instanceof JSProxyObject && ((JSProxyObject) obj).getProxyHandler().hasOwnProperty(Strings.fromJavaString("__taint"))) {
+        if (obj instanceof JSProxyObject && ((JSProxyObject) obj).getProxyHandler().hasOwnProperty(Strings.fromJavaString("__x_taint"))) {
             taints.add(obj);
             return;
         }
