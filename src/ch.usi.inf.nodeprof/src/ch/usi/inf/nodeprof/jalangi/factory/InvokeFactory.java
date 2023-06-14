@@ -64,7 +64,8 @@ public class InvokeFactory extends AbstractFactory {
             CallbackNode cbNode = new CallbackNode();
 
             // cache the function receiver pass on input to not have to fetch all inputs every time
-            Object receiver = Undefined.instance;
+            private Object receiver = Undefined.instance;
+            private Object originalFun = Undefined.instance;
 
             @Override
             public Object executePre(VirtualFrame frame, Object[] inputs) throws InteropException {
@@ -93,8 +94,7 @@ public class InvokeFactory extends AbstractFactory {
                     Source src = fun instanceof JSFunctionObject ? ((JSFunctionObject) fun).getSourceLocation().getSource() : null;
 
                     // TODO Jalangi's function iid/sid are set to be 0/0
-                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), fun, receiver, makeArgs.executeArguments(inputs), isNew(), isInvoke(), getScopeOf(src), proxy, 0, 0);
-//                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), fun, receiver, Undefined.instance, isNew(), isInvoke(), getScopeOf(src), proxy, 0, 0);
+                    return cbNode.preCall(this, jalangiAnalysis, pre, getSourceIID(), fun, receiver, makeArgs.executeArguments(inputs), isNew(), isInvoke(), getScopeOf(src), proxy, originalFun, 0, 0);
                 }
                 return null;
             }
@@ -152,7 +152,8 @@ public class InvokeFactory extends AbstractFactory {
 
                 boolean isAsync = fun instanceof JSFunctionObject && ((JSFunctionObject) fun).getFunctionData().isAsync();
                 Object scope = fun instanceof JSFunctionObject ? getScopeOf(((JSFunctionObject) fun).getSourceLocation().getSource()) : Undefined.instance;
-                return cbNode.onInputCall(
+
+                Object newFun = cbNode.onInputCall(
                         this,
                         jalangiAnalysis,
                         onInput,
@@ -164,6 +165,12 @@ public class InvokeFactory extends AbstractFactory {
                         isAsync,
                         scope
                 );
+
+                // store original function for later use
+                if (newFun != null) {
+                    originalFun = fun;
+                }
+                return newFun;
             }
 
             @Override
