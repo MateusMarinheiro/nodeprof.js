@@ -27,8 +27,8 @@ import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 public class BinaryFactory extends AbstractFactory {
 
     public BinaryFactory(Object jalangiAnalysis, JSDynamicObject pre,
-                         JSDynamicObject post, JSDynamicObject enter) {
-        super("binary", jalangiAnalysis, pre, post, null, null, enter);
+                         JSDynamicObject post, JSDynamicObject onInput, JSDynamicObject enter) {
+        super("binary", jalangiAnalysis, pre, post, onInput, null, enter);
     }
 
     @Override
@@ -49,6 +49,13 @@ public class BinaryFactory extends AbstractFactory {
                                       Object[] inputs) throws InteropException {
                 return post != null
                         ? cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getOp(), getLeft(inputs), getRight(inputs), convertResult(result), isLogic())
+                        : null;
+            }
+
+            @Override
+            public Object executeOnInput(VirtualFrame frame, int inputIndex, Object input) throws Exception {
+                return onInput != null
+                        ? cbNode.onInputCall(this, jalangiAnalysis, post, getSourceIID(), getOp(), inputIndex, input)
                         : null;
             }
 

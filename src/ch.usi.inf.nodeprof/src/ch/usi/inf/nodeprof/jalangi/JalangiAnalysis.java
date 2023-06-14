@@ -135,6 +135,7 @@ public class JalangiAnalysis {
             put("unary", EnumSet.of(UNARY));
             put("binaryEnter", EnumSet.of(BINARY));
             put("binaryPre", EnumSet.of(BINARY));
+            put("binaryInput", EnumSet.of(BINARY));
             put("binary", EnumSet.of(BINARY));
 
             // conditions
@@ -243,6 +244,7 @@ public class JalangiAnalysis {
                     new BinaryFactory(this.jsAnalysis,
                             callbacks.get("binaryPre"),
                             callbacks.get("binary"),
+                            callbacks.get("binaryInput"),
                             callbacks.get("binaryEnter")));
         }
 
