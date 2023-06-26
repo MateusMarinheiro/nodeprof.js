@@ -244,7 +244,6 @@ public class JalangiAnalysis {
                     new BinaryFactory(this.jsAnalysis,
                             callbacks.get("binaryPre"),
                             callbacks.get("binary"),
-                            callbacks.get("binaryInput"),
                             callbacks.get("binaryEnter")));
         }
 
