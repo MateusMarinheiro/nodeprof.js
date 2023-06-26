@@ -167,9 +167,9 @@ public class InvokeFactory extends AbstractFactory {
                 );
 
                 // store original function for later use
-                if (newFun != null) {
-                    originalFun = fun;
-                }
+//                if (newFun != null) {
+//                    originalFun = fun;
+//                }
                 return newFun;
             }
 

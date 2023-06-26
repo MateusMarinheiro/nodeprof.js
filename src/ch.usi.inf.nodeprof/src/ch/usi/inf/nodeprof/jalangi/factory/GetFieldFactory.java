@@ -71,15 +71,8 @@ public class GetFieldFactory extends AbstractFactory {
                     // Only fetch scope when we have an undefine prop read -> this is specific to our case to improve performance
                     // To generalize remove
                     Object scope = result == Undefined.instance ? getContextScope() : Undefined.instance;
-                    Object functionScope = Undefined.instance;
-                    boolean isAsync = false;
 
-                    if (result instanceof JSFunctionObject) {
-                        functionScope = getScopeOf(((JSFunctionObject) result).getSourceLocation().getSource());
-                        isAsync = ((JSFunctionObject) result).getFunctionData().isAsync();
-                    }
-
-                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), convertResult(result), false, functionScope, isAsync, scope);
+                    return cbNode.postCall(this, jalangiAnalysis, post, getSourceIID(), getReceiver(inputs), getProperty(), convertResult(result), false, scope);
                 }
                 return null;
             }
