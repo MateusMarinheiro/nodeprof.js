@@ -1,6 +1,6 @@
 /* *****************************************************************************
  * Copyright 2018 Dynamic Analysis Group, Università della Svizzera Italiana (USI)
- * Copyright (c) 2018, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package ch.usi.inf.nodeprof.utils;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.js.runtime.JSContext;
 import com.oracle.truffle.js.runtime.JSRealm;
 import com.oracle.truffle.js.runtime.builtins.JSOrdinary;
@@ -33,10 +32,13 @@ import com.oracle.truffle.js.runtime.objects.JSObject;
  *
  */
 public class GlobalObjectCache extends Node {
-    @CompilationFinal private DynamicObject global = null;
+    @CompilationFinal
+    private JSDynamicObject global = null;
     @CompilationFinal private JSContext jscontext = null;
-    @CompilationFinal private DynamicObject arrayConstructor = null;
-    @CompilationFinal private DynamicObject emptyWrappedException = null;
+    @CompilationFinal
+    private JSDynamicObject arrayConstructor = null;
+    @CompilationFinal
+    private JSDynamicObject emptyWrappedException = null;
 
     private static GlobalObjectCache cache = new GlobalObjectCache();
 
@@ -49,11 +51,11 @@ public class GlobalObjectCache extends Node {
         cache = new GlobalObjectCache();
     }
 
-    public DynamicObject getGlobal() {
+    public JSDynamicObject getGlobal() {
         return global;
     }
 
-    public DynamicObject getArrayConstructor(JSDynamicObject option) {
+    public JSDynamicObject getArrayConstructor(JSDynamicObject option) {
         if (jscontext == null) {
             addDynamicObject(option);
         }

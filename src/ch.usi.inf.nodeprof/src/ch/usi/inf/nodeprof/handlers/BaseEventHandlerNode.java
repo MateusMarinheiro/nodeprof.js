@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright 2018 Dynamic Analysis Group, Università della Svizzera Italiana (USI)
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
  *******************************************************************************/
 package ch.usi.inf.nodeprof.handlers;
 
+import static com.oracle.truffle.js.runtime.Strings.REQUIRE_PROPERTY_NAME;
+
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -30,6 +32,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.js.runtime.JSFrameUtil;
 import com.oracle.truffle.js.runtime.Strings;
 import com.oracle.truffle.js.runtime.builtins.JSFunction;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
@@ -38,8 +41,6 @@ import com.oracle.truffle.js.runtime.objects.Undefined;
 import ch.usi.inf.nodeprof.utils.GlobalConfiguration;
 import ch.usi.inf.nodeprof.utils.Logger;
 import ch.usi.inf.nodeprof.utils.SourceMapping;
-
-import static com.oracle.truffle.js.runtime.Strings.REQUIRE_PROPERTY_NAME;
 
 /**
  * BaseEventHandlerNode defines the common methods needed to handle an event
@@ -188,12 +189,13 @@ public abstract class BaseEventHandlerNode extends Node {
      * @return the value of this key or null if it does not exist
      */
     public Object getAttributeOrNull(String key) {
-        if (!InteropLibrary.getFactory().getUncached().isMemberReadable(((InstrumentableNode) context.getInstrumentedNode()).getNodeObject(), key)) {
+        Object nodeObject = ((InstrumentableNode) context.getInstrumentedNode()).getNodeObject();
+        if (nodeObject == null || !InteropLibrary.getFactory().getUncached().isMemberReadable(nodeObject, key)) {
             return null;
         }
         Object result = null;
         try {
-            result = InteropLibrary.getFactory().getUncached().readMember(((InstrumentableNode) context.getInstrumentedNode()).getNodeObject(), key);
+            result = InteropLibrary.getFactory().getUncached().readMember(nodeObject, key);
         } catch (Exception e) {
             reportAttributeMissingError(key, e);
         }

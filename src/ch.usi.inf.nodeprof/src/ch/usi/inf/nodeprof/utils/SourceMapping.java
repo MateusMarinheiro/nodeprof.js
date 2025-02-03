@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright 2018 Dynamic Analysis Group, Università della Svizzera Italiana (USI)
- * Copyright (c) 2018, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  * limitations under the License.
  *******************************************************************************/
 package ch.usi.inf.nodeprof.utils;
+
+import static ch.usi.inf.nodeprof.utils.ObjectHelper.setConfigProperty;
 
 import java.io.File;
 import java.util.HashMap;
@@ -34,8 +36,6 @@ import com.oracle.truffle.js.runtime.builtins.JSArray;
 import com.oracle.truffle.js.runtime.builtins.JSOrdinary;
 import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 import com.oracle.truffle.js.runtime.objects.Undefined;
-
-import static ch.usi.inf.nodeprof.utils.ObjectHelper.setConfigProperty;
 
 public abstract class SourceMapping {
     private static int iidGen = 0;
