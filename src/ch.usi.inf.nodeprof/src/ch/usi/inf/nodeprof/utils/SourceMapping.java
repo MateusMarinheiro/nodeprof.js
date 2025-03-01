@@ -134,7 +134,6 @@ public abstract class SourceMapping {
 
     @TruffleBoundary
     public static JSDynamicObject getJSObjectForSource(Source source) {
-    public static JSDynamicObject getJSObjectForSource(Source source) {
         if (source == null) {
             return Undefined.instance;
         }

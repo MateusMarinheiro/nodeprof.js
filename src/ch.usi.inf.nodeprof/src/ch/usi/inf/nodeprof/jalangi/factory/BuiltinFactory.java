@@ -32,8 +32,6 @@ public class BuiltinFactory extends AbstractFactory {
 
     public BuiltinFactory(Object jalangiAnalysis, JSDynamicObject pre,
                           JSDynamicObject post, String builtinFilter) {
-    public BuiltinFactory(Object jalangiAnalysis, JSDynamicObject pre,
-                          JSDynamicObject post, String builtinFilter) {
         super("builtin", jalangiAnalysis, pre, post);
         this.builtinFilter = builtinFilter;
     }

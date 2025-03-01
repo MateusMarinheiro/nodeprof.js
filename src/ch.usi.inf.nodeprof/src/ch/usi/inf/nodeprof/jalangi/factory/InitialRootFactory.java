@@ -38,7 +38,6 @@ import com.oracle.truffle.js.runtime.objects.JSDynamicObject;
 public class InitialRootFactory extends AbstractFactory {
 
     public InitialRootFactory(Object jalangiAnalysis, JSDynamicObject post) {
-    public InitialRootFactory(Object jalangiAnalysis, JSDynamicObject post) {
         super("newSource", jalangiAnalysis, null, post);
     }
 

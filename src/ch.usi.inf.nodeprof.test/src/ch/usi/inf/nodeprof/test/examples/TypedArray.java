@@ -130,7 +130,7 @@ public class TypedArray extends TestableNodeProfAnalysis {
                     public Object executePost(VirtualFrame frame,
                                     Object result, Object[] inputs) {
                         Object funcObj = getFunction(inputs);
-                        if (funcObj instanceof DynamicObject) {
+                        if (funcObj instanceof JSDynamicObject) {
                             Object constructor = GlobalObjectCache.getInstance().getArrayConstructor((JSDynamicObject) funcObj);
                             if (funcObj == constructor) {
                                 trackAllocation(result, getSourceIID());

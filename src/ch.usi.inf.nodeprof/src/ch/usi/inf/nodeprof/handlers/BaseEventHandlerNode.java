@@ -373,7 +373,6 @@ public abstract class BaseEventHandlerNode extends Node {
         }
         if (JSFunction.isJSFunction(args[3])) {
             return REQUIRE_PROPERTY_NAME.equals(JSFunction.getName((JSDynamicObject) args[3]));
-            return REQUIRE_PROPERTY_NAME.equals(JSFunction.getName((JSDynamicObject) args[3]));
         }
         return false;
     }

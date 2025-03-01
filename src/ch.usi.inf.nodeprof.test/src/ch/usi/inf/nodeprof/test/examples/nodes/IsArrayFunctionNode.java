@@ -42,7 +42,6 @@ public abstract class IsArrayFunctionNode extends Node {
     public abstract String executeIsArrayFunction(Object receiver, Object function);
 
     protected String check(Object receiver, JSDynamicObject function) {
-    protected String check(Object receiver, JSDynamicObject function) {
         if (!JSArray.isJSArray(receiver)) {
             return null;
         }
@@ -75,7 +74,6 @@ public abstract class IsArrayFunctionNode extends Node {
     }
 
     @Specialization
-    protected String executeObject(Object receiver, JSDynamicObject input) {
     protected String executeObject(Object receiver, JSDynamicObject input) {
         return check(receiver, input);
     }
