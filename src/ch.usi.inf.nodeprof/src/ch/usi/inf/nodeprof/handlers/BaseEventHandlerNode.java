@@ -311,6 +311,28 @@ public abstract class BaseEventHandlerNode extends Node {
         return 0;
     }
 
+    public Object getImportsOf(Source src) {
+        if (src == null) return Undefined.instance;
+
+        String imports = null;
+        if (src.isInternal()) {
+            imports = "<builtin>";
+        } else {
+            String name = src.getName();
+
+            if (name.startsWith("node:")) {
+                imports = "<node:>";
+            } else {
+                String[] parts = name.split("node_modules/");
+                if (parts.length > 1) {
+                    imports = parts[1].split("/")[0];
+                }
+            }
+        }
+
+        return imports != null ? Strings.fromJavaString(imports) : Undefined.instance;
+    }
+
     /**
      * Get context JavaScript scope object in the form of a location string
      *

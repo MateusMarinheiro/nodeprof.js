@@ -152,6 +152,7 @@ public class InvokeFactory extends AbstractFactory {
 
                 boolean isAsync = fun instanceof JSFunctionObject && ((JSFunctionObject) fun).getFunctionData().isAsync();
                 Object scope = fun instanceof JSFunctionObject ? getScopeOf(((JSFunctionObject) fun).getSourceLocation().getSource()) : Undefined.instance;
+                Object imports = fun instanceof JSFunctionObject ? getImportsOf(((JSFunctionObject) fun).getSourceLocation().getSource()) : Undefined.instance;
 
                 Object newFun = cbNode.onInputCall(
                         this,
@@ -163,7 +164,8 @@ public class InvokeFactory extends AbstractFactory {
                         inputIndex,
                         isNew(),
                         isAsync,
-                        scope
+                        scope,
+                        imports
                 );
 
                 // store original function for later use
